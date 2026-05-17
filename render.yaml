@@ -1,0 +1,51 @@
+# render.yaml — Infrastructure as Code for Render
+# Place this at the REPO ROOT (the folder you push to GitHub)
+# Run with: Render Dashboard → New → Blueprint
+
+databases:
+  - name: goalsynce-db
+    plan: free
+    region: singapore
+
+services:
+  # ── Backend Web Service ──────────────────────────────────────
+  - type: web
+    name: goalsynce-api
+    runtime: node
+    rootDir: backend_final/server
+    plan: free
+    region: singapore
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: goalsynce-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true   # Render auto-generates a secure random secret
+      - key: JWT_EXPIRES_IN
+        value: 8h
+      - key: CLIENT_URL
+        value: https://goalsynce.onrender.com   # ← update if your service name differs
+
+  # ── Frontend Static Site ─────────────────────────────────────
+  - type: web
+    name: goalsynce
+    runtime: static
+    rootDir: frontend_final/client
+    plan: free
+    region: singapore
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://goalsynce-api.onrender.com/api   # ← update if your service name differs
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+

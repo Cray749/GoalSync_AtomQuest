@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoalSync — Production & Render Deployment Guide</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0d1117;
+    --ink-2: #24292f;
+    --ink-3: #57606a;
+    --ink-4: #8c959f;
+    --surface: #ffffff;
+    --surface-2: #f6f8fa;
+    --surface-3: #eaeef2;
+    --border: #d0d7de;
+    --border-2: #e8ecf0;
+    --accent: #1f6feb;
+    --accent-bg: #ddf4ff;
+    --accent-text: #0550ae;
+    --green: #1a7f37;
+    --green-bg: #dafbe1;
+    --red: #cf222e;
+    --red-bg: #ffebe9;
+    --orange: #9a6700;
+    --orange-bg: #fff8c5;
+    --purple: #6639ba;
+    --purple-bg: #fbefff;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ink-2);
+    background: var(--surface-2);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    width: 260px; height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 0 0 2rem;
+    z-index: 100;
+  }
+  .sidebar-header {
+    padding: 1.25rem 1.25rem 1rem;
+    border-bottom: 1px solid var(--border-2);
+    position: sticky; top: 0;
+    background: var(--surface);
+  }
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.3px;
+  }
+  .sidebar-logo span { color: var(--accent); }
+  .sidebar-subtitle { font-size: 11px; color: var(--ink-4); margin-top: 2px; }
+  .nav-section { padding: 1rem 1.25rem 0; }
+  .nav-section-title {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--ink-4);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 0.4rem;
+  }
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    color: var(--ink-3);
+    text-decoration: none;
+    margin-bottom: 1px;
+  }
+  .nav-link:hover { background: var(--surface-2); color: var(--ink); }
+  .nav-link.sub { padding-left: 22px; font-size: 12px; }
+  .nav-link .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+  .nav-link.red .dot { background: var(--red); }
+  .nav-link.orange .dot { background: #f0883e; }
+  .nav-link.green .dot { background: var(--green); }
+
+  /* ── MAIN ── */
+  main {
+    margin-left: 260px;
+    padding: 3rem 3.5rem;
+    max-width: 920px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem;
+    margin-bottom: 2.5rem;
+  }
+  .hero h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.5px;
+    margin-bottom: 0.5rem;
+  }
+  .hero p { color: var(--ink-3); font-size: 15px; margin-bottom: 1.25rem; }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag {
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid;
+  }
+  .tag-blue { background: var(--accent-bg); color: var(--accent-text); border-color: #b6d4f5; }
+  .tag-green { background: var(--green-bg); color: var(--green); border-color: #9dd4a2; }
+  .tag-purple { background: var(--purple-bg); color: var(--purple); border-color: #d2b6f7; }
+  .tag-orange { background: var(--orange-bg); color: var(--orange); border-color: #f0c84a; }
+
+  /* ── SECTION ── */
+  h2 {
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 2.5rem 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  h2 .num {
+    background: var(--ink);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 1.5rem 0 0.6rem;
+  }
+  h4 {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink-2);
+    margin: 1.25rem 0 0.4rem;
+  }
+  p { margin-bottom: 0.8rem; color: var(--ink-2); }
+
+  /* ── STEP CARDS ── */
+  .steps { display: flex; flex-direction: column; gap: 0; }
+  .step {
+    display: flex;
+    gap: 0;
+    position: relative;
+  }
+  .step:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 32px;
+    bottom: 0;
+    width: 1px;
+    background: var(--border);
+  }
+  .step-num {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-right: 14px;
+    margin-top: 12px;
+    position: relative;
+    z-index: 1;
+  }
+  .step-num.done { background: var(--green); }
+  .step-num.warn { background: #f0883e; }
+  .step-body {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 10px;
+    flex: 1;
+  }
+  .step-body h4 { margin-top: 0; }
+  .step-body p:last-child { margin-bottom: 0; }
+
+  /* ── CODE ── */
+  pre {
+    background: var(--ink);
+    color: #e6edf3;
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    overflow-x: auto;
+    margin: 0.75rem 0 1rem;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+  }
+  code {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: var(--red);
+  }
+  pre code { background: none; border: none; color: inherit; padding: 0; }
+  .comment { color: #8b949e; }
+  .key { color: #79c0ff; }
+  .val { color: #a5d6ff; }
+  .str { color: #a8ff78; }
+  .kw { color: #ff7b72; }
+  .fn { color: #d2a8ff; }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+    border-left: 3px solid;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 2px; }
+  .callout-body { flex: 1; }
+  .callout-body p { margin: 0; font-size: 13.5px; }
+  .callout-body strong { font-weight: 600; display: block; margin-bottom: 3px; }
+  .callout.red { background: var(--red-bg); border-color: var(--red); color: #6e1a1e; }
+  .callout.green { background: var(--green-bg); border-color: var(--green); color: #1a4a22; }
+  .callout.blue { background: var(--accent-bg); border-color: var(--accent); color: var(--accent-text); }
+  .callout.orange { background: var(--orange-bg); border-color: #d4940e; color: #5a3d00; }
+
+  /* ── TABLES ── */
+  table { width: 100%; border-collapse: collapse; margin: 0.75rem 0 1.25rem; font-size: 13.5px; }
+  th {
+    background: var(--surface-2);
+    font-weight: 600;
+    padding: 8px 12px;
+    text-align: left;
+    border: 1px solid var(--border);
+    color: var(--ink);
+  }
+  td { padding: 8px 12px; border: 1px solid var(--border-2); color: var(--ink-2); }
+  tr:nth-child(even) td { background: var(--surface-2); }
+
+  /* ── CARDS ── */
+  .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 1rem 0; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+  }
+  .card h4 { margin-top: 0; margin-bottom: 0.4rem; }
+  .card p { font-size: 13px; color: var(--ink-3); margin: 0; }
+
+  /* ── FILE TREE ── */
+  .filetree {
+    background: var(--ink);
+    color: #8b949e;
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.9;
+    margin: 0.75rem 0 1rem;
+  }
+  .filetree .new { color: #a5d6ff; }
+  .filetree .mod { color: #ffa657; }
+  .filetree .ok { color: #56d364; }
+  .filetree .dir { color: #d2a8ff; font-weight: 600; }
+  .filetree .cmt { color: #555f6a; }
+
+  /* ── ENV TABLE ── */
+  .env-table { width: 100%; border-collapse: collapse; margin: 0.75rem 0 1.25rem; font-size: 12.5px; }
+  .env-table th { background: var(--ink); color: #e6edf3; padding: 7px 12px; text-align: left; }
+  .env-table td { padding: 7px 12px; border-bottom: 1px solid var(--border-2); vertical-align: top; font-family: var(--mono); }
+  .env-table td:first-child { color: var(--red); font-weight: 600; }
+  .env-table td:nth-child(2) { color: var(--ink-3); font-family: -apple-system, sans-serif; font-size: 12px; }
+  .env-table td:last-child { color: #0550ae; }
+  .req { color: var(--red) !important; font-size: 10px; font-weight: 700; }
+  .opt { color: var(--ink-4) !important; font-size: 10px; }
+
+  /* ── BADGES ── */
+  .badge {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .badge-red { background: var(--red-bg); color: var(--red); }
+  .badge-green { background: var(--green-bg); color: var(--green); }
+  .badge-blue { background: var(--accent-bg); color: var(--accent-text); }
+  .badge-orange { background: var(--orange-bg); color: var(--orange); }
+
+  /* ── CHECKLIST ── */
+  .checklist { list-style: none; padding: 0; margin: 0.5rem 0 1rem; }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 5px 0;
+    font-size: 13.5px;
+    color: var(--ink-2);
+    border-bottom: 1px solid var(--border-2);
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist .box {
+    width: 16px; height: 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 3px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* ── FLOW ── */
+  .flow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 1rem 0;
+  }
+  .flow-node {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .flow-node.blue { background: var(--accent-bg); border-color: #b6d4f5; color: var(--accent-text); }
+  .flow-node.green { background: var(--green-bg); border-color: #9dd4a2; color: var(--green); }
+  .flow-node.orange { background: var(--orange-bg); border-color: #f0c84a; color: var(--orange); }
+  .flow-arrow { color: var(--ink-4); font-size: 18px; }
+
+  hr.divider { border: none; border-top: 1px solid var(--border-2); margin: 2.5rem 0; }
+
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    main { margin-left: 0; padding: 2rem 1.5rem; }
+    .card-grid { grid-template-columns: 1fr; }
+  }
+  @media print { .sidebar { display: none; } main { margin-left: 0; } }
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">Goal<span>Sync</span> Deploy Guide</div>
+    <div class="sidebar-subtitle">Production + Render · v1.0</div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Bug Fixes (Do First)</div>
+    <a href="#fix1" class="nav-link red"><span class="dot"></span>Fix CSV Export Crash</a>
+    <a href="#fix2" class="nav-link red"><span class="dot"></span>Fix Shared Goal Sync</a>
+    <a href="#fix3" class="nav-link orange"><span class="dot"></span>Manager Shared Goals</a>
+    <a href="#fix4" class="nav-link orange"><span class="dot"></span>Seed Manager Goals</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Production Hardening</div>
+    <a href="#prod-backend" class="nav-link"><span class="dot"></span>Backend Changes</a>
+    <a href="#prod-frontend" class="nav-link"><span class="dot"></span>Frontend Changes</a>
+    <a href="#env-vars" class="nav-link"><span class="dot"></span>Environment Variables</a>
+    <a href="#gitignore" class="nav-link"><span class="dot"></span>.gitignore Setup</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Render Deployment</div>
+    <a href="#render-overview" class="nav-link"><span class="dot"></span>Architecture Overview</a>
+    <a href="#render-db" class="nav-link"><span class="dot"></span>Step 1 — Database</a>
+    <a href="#render-backend" class="nav-link"><span class="dot"></span>Step 2 — Backend</a>
+    <a href="#render-frontend" class="nav-link"><span class="dot"></span>Step 3 — Frontend</a>
+    <a href="#render-migrate" class="nav-link"><span class="dot"></span>Step 4 — Migrations</a>
+    <a href="#render-envlink" class="nav-link"><span class="dot"></span>Step 5 — Link Env Vars</a>
+    <a href="#render-verify" class="nav-link"><span class="dot"></span>Step 6 — Verify Live</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Post-Deploy</div>
+    <a href="#github" class="nav-link"><span class="dot"></span>GitHub Repo Setup</a>
+    <a href="#render-yaml" class="nav-link"><span class="dot"></span>render.yaml (IaC)</a>
+    <a href="#cicd" class="nav-link"><span class="dot"></span>Auto-Deploy on Push</a>
+    <a href="#email" class="nav-link"><span class="dot"></span>Email (Mailtrap Setup)</a>
+    <a href="#checklist" class="nav-link green"><span class="dot"></span>Final Checklist</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="hero">
+  <h1>GoalSync — Production &amp; Render Deployment</h1>
+  <p>Fix the 4 code gaps from the BRD audit, harden for production, and ship the full stack to Render's free tier. Everything in this guide is specific to your exact codebase.</p>
+  <div class="tag-row">
+    <span class="tag tag-red" style="background:#ffebe9;color:#cf222e;border-color:#f5b8b8;">🔴 2 Critical Bug Fixes</span>
+    <span class="tag tag-orange">🟡 2 P2 Enhancements</span>
+    <span class="tag tag-blue">⚙️ Production Hardening</span>
+    <span class="tag tag-green">🚀 Render Free Tier</span>
+    <span class="tag tag-purple">🔄 Auto-Deploy on Git Push</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2><span class="num">P</span> PART A — Bug Fixes (Apply Before Deploying)</h2>
+
+<p>Apply all 4 fixes to your local codebase first, then push to GitHub. Deploying with these bugs means your demo will crash in front of judges.</p>
+
+<!-- ── FIX 1 ── -->
+<h3 id="fix1">🔴 Fix 1 — CSV Export Crash (Critical)</h3>
+<p><strong>File:</strong> <code>server/src/controllers/reports.controller.js</code></p>
+
+<div class="callout red">
+  <span class="callout-icon">⚠️</span>
+  <div class="callout-body">
+    <strong>Runtime crash on "Download CSV"</strong>
+    <p><code>json2csv v6-alpha</code> removed the synchronous <code>Parser</code> class. Your code uses the v5 API. This throws <code>TypeError: Parser is not a constructor</code> the moment any user clicks Download CSV.</p>
+  </div>
+</div>
+
+<h4>Change 1 of 2 — top of file (line ~6)</h4>
+<pre><code><span class="comment">// ❌ REMOVE this line:</span>
+<span class="kw">const</span> { <span class="val">Parser</span> } = require(<span class="str">'json2csv'</span>);
+
+<span class="comment">// ✅ REPLACE with:</span>
+<span class="kw">const</span> { <span class="fn">parse</span>: <span class="val">csvParse</span> } = require(<span class="str">'json2csv'</span>);</code></pre>
+
+<h4>Change 2 of 2 — inside the CSV export helper (lines ~256–257)</h4>
+<pre><code><span class="comment">// ❌ REMOVE these two lines:</span>
+<span class="kw">const</span> parser = <span class="kw">new</span> <span class="fn">Parser</span>();
+<span class="kw">const</span> csv    = parser.<span class="fn">parse</span>(data);
+
+<span class="comment">// ✅ REPLACE with one line:</span>
+<span class="kw">const</span> csv = <span class="fn">csvParse</span>(data);</code></pre>
+
+<div class="callout green">
+  <span class="callout-icon">✓</span>
+  <div class="callout-body"><p>No package reinstall needed. Same <code>json2csv@6-alpha</code> package, just the correct v6 API call.</p></div>
+</div>
+
+<!-- ── FIX 2 ── -->
+<h3 id="fix2">🔴 Fix 2 — Shared Goal Achievement Sync (Critical)</h3>
+<p><strong>File:</strong> <code>server/src/controllers/achievements.controller.js</code></p>
+<p>The BRD says: <em>"Achievement updates by the primary owner sync across all linked goal sheets."</em> Right now when Aarav logs Q1 actuals on a shared goal, Meera's linked copy stays blank. Add the cascade block in <strong>both</strong> <code>createAchievement</code> and <code>updateAchievement</code>.</p>
+
+<h4>In createAchievement — add after the main upsert, before the "Notify manager" comment</h4>
+<pre><code><span class="comment">// ── Cascade actuals to shared-goal children (BRD §2.1) ───────</span>
+<span class="comment">// Only the primary owner (no parent_goal_id) triggers cascade.</span>
+<span class="kw">if</span> (!goal.parent_goal_id) {
+  <span class="kw">const</span> { rows: children } = <span class="kw">await</span> <span class="fn">query</span>(
+    <span class="str">`SELECT id FROM goals WHERE parent_goal_id = $1 AND status = 'approved'`</span>,
+    [goal_id]
+  );
+  <span class="kw">for</span> (<span class="kw">const</span> child <span class="kw">of</span> children) {
+    <span class="kw">await</span> <span class="fn">query</span>(<span class="str">`
+      INSERT INTO goal_achievements
+        (goal_id, quarter, planned_value, actual_value, completion_date, goal_status)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      ON CONFLICT (goal_id, quarter) DO UPDATE SET
+        actual_value    = EXCLUDED.actual_value,
+        completion_date = EXCLUDED.completion_date,
+        goal_status     = EXCLUDED.goal_status,
+        submitted_at    = NOW(),
+        updated_at      = NOW()
+    `</span>, [
+      child.id, quarter,
+      goal.target_value ?? <span class="kw">null</span>,
+      actual_value      ?? <span class="kw">null</span>,
+      completion_date   ?? <span class="kw">null</span>,
+      goal_status       ?? <span class="str">'not_started'</span>,
+    ]);
+  }
+}</code></pre>
+
+<h4>In updateAchievement — same cascade block, add after the main UPDATE query</h4>
+<p>Find the UPDATE statement in <code>updateAchievement</code>, and paste the identical cascade block right after it. Replace <code>goal_id</code> with <code>ach.goal_id</code> (use whatever variable holds the parent goal row's id in that function).</p>
+
+<!-- ── FIX 3 ── -->
+<h3 id="fix3">🟡 Fix 3 — Let Managers Push Shared Goals</h3>
+<p><strong>File:</strong> <code>server/src/routes/manager.routes.js</code></p>
+<p>BRD says "Admin <strong>or manager</strong>" can push shared goals. Currently only admin can. This is a 2-line addition.</p>
+
+<h4>Add to manager.routes.js — after the existing routes</h4>
+<pre><code><span class="comment">// Add at top with other requires:</span>
+<span class="kw">const</span> adminCtrl = require(<span class="str">'../controllers/admin.controller'</span>);
+
+<span class="comment">// Add this route (managers can push shared goals to their team members only):</span>
+router.<span class="fn">post</span>(<span class="str">'/shared-goals'</span>, adminCtrl.<span class="val">pushSharedGoal</span>);</code></pre>
+
+<div class="callout blue">
+  <span class="callout-icon">ℹ</span>
+  <div class="callout-body"><p><code>pushSharedGoal</code> already accepts an <code>employee_ids</code> array in the body, so a manager just needs to pass only their team members' IDs. No backend logic change needed — the existing function works.</p></div>
+</div>
+
+<!-- ── FIX 4 ── -->
+<h3 id="fix4">🟡 Fix 4 — Seed Rahul's Own Goals</h3>
+<p><strong>File:</strong> <code>server/scripts/seed.js</code></p>
+<p>When a judge logs in as Manager and clicks "My Goals," they see an empty page. Add this section after the Meera block (section 4) and before the shared goal block (section 5).</p>
+
+<pre><code><span class="comment">// ── 4b. Rahul's own goals (demonstrating manager-as-employee) ──</span>
+console.<span class="fn">log</span>(<span class="str">'[Seed] Creating Rahul Verma manager-as-employee goals…'</span>);
+<span class="kw">const</span> managerId = <span class="str">'00000000-0000-0000-0000-000000000002'</span>; <span class="comment">// Rahul's ID</span>
+<span class="kw">const</span> rahulGoalIds = [
+  <span class="str">'aaaaaaaa-0000-0000-0000-000000000010'</span>,
+  <span class="str">'aaaaaaaa-0000-0000-0000-000000000011'</span>,
+];
+<span class="kw">const</span> rahulGoals = [
+  { id: rahulGoalIds[<span class="val">0</span>], title: <span class="str">'Team Sprint Delivery Rate'</span>,
+    desc: <span class="str">'Ensure ≥90% story completion across all sprints'</span>,
+    uom: <span class="str">'min'</span>, target: <span class="val">90</span>, weight: <span class="val">50</span>, thrust: <span class="str">'Operational Efficiency'</span> },
+  { id: rahulGoalIds[<span class="val">1</span>], title: <span class="str">'Quarterly Check-in Completion'</span>,
+    desc: <span class="str">'Complete 100% of team check-ins within the open window'</span>,
+    uom: <span class="str">'min'</span>, target: <span class="val">100</span>, weight: <span class="val">50</span>, thrust: <span class="str">'People Development'</span> },
+];
+<span class="kw">for</span> (<span class="kw">const</span> g <span class="kw">of</span> rahulGoals) {
+  <span class="kw">const</span> ta = thrustMap[g.thrust];
+  <span class="kw">await</span> <span class="fn">query</span>(<span class="str">`
+    INSERT INTO goals (id, employee_id, cycle_id, thrust_area_id, title,
+      description, uom_type, target_value, weightage, status, is_locked)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'approved',TRUE)
+    ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status
+  `</span>, [g.id, managerId, cycleId, ta, g.title, g.desc, g.uom, g.target, g.weight]);
+}
+console.<span class="fn">log</span>(<span class="str">'[Seed]   ✓ Rahul goals seeded'</span>);</code></pre>
+
+<div class="callout orange">
+  <span class="callout-icon">⚠</span>
+  <div class="callout-body">
+    <strong>Make sure thrustMap is accessible</strong>
+    <p>The seed already builds a thrust area lookup called <code>thrustMap</code> (or similar). Verify the variable name matches what your seed.js uses for thrust area lookup. Check the Aarav goals section — it uses the same pattern.</p>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2><span class="num">B</span> PART B — Production Hardening</h2>
+
+<h3 id="prod-backend">Backend Changes</h3>
+
+<h4>1. Remove dotenv from production — server/src/server.js</h4>
+<p>Render injects environment variables natively. <code>dotenv</code> in production is harmless but cluttered. Wrap it so it only loads locally:</p>
+<pre><code><span class="comment">// server/src/server.js — line 6, CHANGE:</span>
+require(<span class="str">'dotenv'</span>).<span class="fn">config</span>();
+
+<span class="comment">// TO:</span>
+<span class="kw">if</span> (process.env.NODE_ENV !== <span class="str">'production'</span>) {
+  require(<span class="str">'dotenv'</span>).<span class="fn">config</span>();
+}</code></pre>
+
+<h4>2. Add trust proxy — server/src/app.js</h4>
+<p>Render sits behind a load balancer. Without this, <code>express-rate-limit</code> sees the proxy IP for every request and throttles everyone together.</p>
+<pre><code><span class="comment">// server/src/app.js — add immediately after `const app = express();`</span>
+app.<span class="fn">set</span>(<span class="str">'trust proxy'</span>, <span class="val">1</span>); <span class="comment">// Trust first proxy (Render's load balancer)</span></code></pre>
+
+<h4>3. CORS — add your Render frontend URL</h4>
+<p>Your current CORS array only allows <code>CLIENT_URL</code>. On Render, set this env var after deployment, but also add your known Render subdomain as a fallback. Find the allowedOrigins array in <code>app.js</code>:</p>
+<pre><code><span class="kw">const</span> allowedOrigins = [
+  process.env.CLIENT_URL || <span class="str">'http://localhost:5173'</span>,
+  <span class="str">'http://localhost:5173'</span>,
+  <span class="str">'http://localhost:3000'</span>,
+  <span class="comment">// ADD THESE after you know your Render frontend URL:</span>
+  <span class="comment">// 'https://goalsynce.onrender.com',</span>
+];
+<span class="comment">// You'll uncomment the last line after Step 3 of the Render deploy.</span></code></pre>
+
+<h4>4. Add a /ready endpoint — server/src/app.js</h4>
+<p>Render uses health checks. Your existing <code>/health</code> is fine, but a <code>/ready</code> endpoint that checks DB connectivity is more robust:</p>
+<pre><code><span class="comment">// Add after the existing /health route in app.js:</span>
+app.<span class="fn">get</span>(<span class="str">'/ready'</span>, <span class="kw">async</span> (_req, res) => {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> { pool } = require(<span class="str">'./config/db'</span>);
+    <span class="kw">await</span> pool.<span class="fn">query</span>(<span class="str">'SELECT 1'</span>);
+    res.<span class="fn">json</span>({ status: <span class="str">'ready'</span>, db: <span class="str">'ok'</span> });
+  } <span class="kw">catch</span> (err) {
+    res.<span class="fn">status</span>(<span class="val">503</span>).<span class="fn">json</span>({ status: <span class="str">'not ready'</span>, db: err.message });
+  }
+});</code></pre>
+
+<h4>5. Verify render.yaml (Render's build config)</h4>
+<p>Your current <code>nixpacks.toml</code> works on Railway but Render uses its own system. Create <code>server/render.yaml</code> at the repo root level instead:</p>
+<pre><code><span class="comment"># render.yaml — place at REPO ROOT (not inside /server)</span>
+services:
+  - <span class="key">type</span>: <span class="str">web</span>
+    <span class="key">name</span>: <span class="str">goalsynce-api</span>
+    <span class="key">runtime</span>: <span class="str">node</span>
+    <span class="key">rootDir</span>: <span class="str">server</span>
+    <span class="key">buildCommand</span>: <span class="str">npm ci</span>
+    <span class="key">startCommand</span>: <span class="str">npm start</span>
+    <span class="key">healthCheckPath</span>: <span class="str">/health</span>
+    <span class="key">envVars</span>:
+      - <span class="key">key</span>: <span class="str">NODE_ENV</span>
+        <span class="key">value</span>: <span class="str">production</span></code></pre>
+
+<div class="callout blue">
+  <span class="callout-icon">ℹ</span>
+  <div class="callout-body"><p>Render auto-detects Node.js from <code>package.json</code>. The <code>render.yaml</code> just makes the settings explicit and reproducible. You can also configure everything through the Render dashboard — the YAML is optional but recommended.</p></div>
+</div>
+
+<h3 id="prod-frontend">Frontend Changes</h3>
+
+<h4>1. vite.config.js — remove the dev proxy from build</h4>
+<p>The proxy config is dev-only. It's already inside <code>server: {}</code> so it won't affect the production build. No change needed — just confirming it's safe.</p>
+
+<h4>2. Add a _redirects file for Render Static Sites</h4>
+<p>Render Static Sites use a <code>_redirects</code> file (not <code>vercel.json</code>). Create <code>client/public/_redirects</code>:</p>
+<pre><code>/* /index.html 200</code></pre>
+<p>This is the Render equivalent of your existing <code>vercel.json</code> SPA rewrite. Without it, any direct URL like <code>/employee/goals</code> returns a 404 on page refresh.</p>
+
+<h4>3. Verify VITE_API_URL usage</h4>
+<p>Your <code>client/src/services/index.js</code> already uses:</p>
+<pre><code>baseURL: import.meta.env.VITE_API_URL || <span class="str">'/api'</span>,</code></pre>
+<p>This is correct. You'll set <code>VITE_API_URL</code> in Render's Static Site environment variables to your backend URL.</p>
+
+<h3 id="env-vars">Environment Variables Reference</h3>
+<p>Set these in Render's dashboard. Backend vars go in the Web Service settings. Frontend vars go in the Static Site settings.</p>
+
+<h4>Backend (Render Web Service)</h4>
+<table class="env-table">
+  <tr><th>Variable</th><th>Description</th><th>Value</th></tr>
+  <tr><td>DATABASE_URL</td><td>Auto-set by Render when you link the DB <span class="req">REQUIRED</span></td><td>(auto-injected)</td></tr>
+  <tr><td>JWT_SECRET</td><td>Random 32+ char string <span class="req">REQUIRED</span></td><td>Use: <code>openssl rand -base64 32</code></td></tr>
+  <tr><td>JWT_EXPIRES_IN</td><td>Token lifetime <span class="opt">optional</span></td><td>8h</td></tr>
+  <tr><td>NODE_ENV</td><td>Environment flag <span class="req">REQUIRED</span></td><td>production</td></tr>
+  <tr><td>CLIENT_URL</td><td>Your frontend Render URL <span class="req">REQUIRED</span></td><td>https://goalsynce.onrender.com</td></tr>
+  <tr><td>PORT</td><td>Render sets this automatically — do NOT set it manually <span class="opt">skip</span></td><td>(auto)</td></tr>
+  <tr><td>SMTP_HOST</td><td>Mailtrap SMTP host <span class="opt">optional</span></td><td>sandbox.smtp.mailtrap.io</td></tr>
+  <tr><td>SMTP_PORT</td><td>Mailtrap port <span class="opt">optional</span></td><td>587</td></tr>
+  <tr><td>SMTP_USER</td><td>Your Mailtrap username <span class="opt">optional</span></td><td>(from mailtrap.io)</td></tr>
+  <tr><td>SMTP_PASS</td><td>Your Mailtrap password <span class="opt">optional</span></td><td>(from mailtrap.io)</td></tr>
+  <tr><td>SMTP_SECURE</td><td>TLS flag <span class="opt">optional</span></td><td>false</td></tr>
+  <tr><td>EMAIL_FROM</td><td>Sender name/email <span class="opt">optional</span></td><td>"GoalSync" &lt;noreply@goalsynce.app&gt;</td></tr>
+</table>
+
+<h4>Frontend (Render Static Site)</h4>
+<table class="env-table">
+  <tr><th>Variable</th><th>Description</th><th>Value</th></tr>
+  <tr><td>VITE_API_URL</td><td>Full backend API URL <span class="req">REQUIRED</span></td><td>https://goalsynce-api.onrender.com/api</td></tr>
+</table>
+
+<div class="callout orange">
+  <span class="callout-icon">⚠</span>
+  <div class="callout-body">
+    <strong>Set CLIENT_URL and VITE_API_URL after Step 3</strong>
+    <p>You don't know your Render URLs until after you create the services. Deploy both services first, then go back and set these two variables. Both services will automatically redeploy when you save the env vars.</p>
+  </div>
+</div>
+
+<h3 id="gitignore">Create .gitignore Files</h3>
+<p>Both projects need a proper <code>.gitignore</code>. Create these before your first commit.</p>
+
+<h4>server/.gitignore</h4>
+<pre><code>node_modules/
+.env
+.env.local
+.env.*.local
+*.log
+npm-debug.log*
+dist/
+.DS_Store
+Thumbs.db</code></pre>
+
+<h4>client/.gitignore</h4>
+<pre><code>node_modules/
+dist/
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+Thumbs.db</code></pre>
+
+<h4>Root .gitignore (at repo root)</h4>
+<pre><code>node_modules/
+.env
+*.log
+.DS_Store
+Thumbs.db
+dist/</code></pre>
+
+<hr class="divider">
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2><span class="num">C</span> PART C — Deploy to Render (Step by Step)</h2>
+
+<h3 id="render-overview">Architecture on Render</h3>
+
+<div class="flow">
+  <div class="flow-node blue">GitHub Repo<br><small style="font-weight:400;font-size:11px;">goalsynce/</small></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node orange">Render Static Site<br><small style="font-weight:400;font-size:11px;">React frontend</small></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node green">Render Web Service<br><small style="font-weight:400;font-size:11px;">Node.js API</small></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node" style="background:#e8f4fe;border-color:#b6d4f5;color:#0550ae;">Render PostgreSQL<br><small style="font-weight:400;font-size:11px;">Free 1GB DB</small></div>
+</div>
+
+<div class="card-grid">
+  <div class="card">
+    <h4>🌐 Static Site (Frontend)</h4>
+    <p>Serves your built React app. Free tier. Custom domain supported. Render's CDN handles global delivery.</p>
+  </div>
+  <div class="card">
+    <h4>⚙️ Web Service (Backend)</h4>
+    <p>Runs your Node.js/Express API. Free tier spins down after 15min inactivity — expected for demos.</p>
+  </div>
+  <div class="card">
+    <h4>🗄️ PostgreSQL Database</h4>
+    <p>Render's managed Postgres. Free tier: 1GB storage, 90-day data retention, no CC needed.</p>
+  </div>
+  <div class="card">
+    <h4>🔄 Auto-Deploy</h4>
+    <p>Every push to your main branch triggers automatic rebuild and redeploy for both services.</p>
+  </div>
+</div>
+
+<div class="callout orange">
+  <span class="callout-icon">⚠</span>
+  <div class="callout-body">
+    <strong>Free tier cold start warning</strong>
+    <p>Render's free Web Service spins down after 15 minutes of inactivity. First request after that takes ~30 seconds to wake up. For the hackathon demo: open your backend URL in a browser tab 2 minutes before the demo to warm it up. Upgrade to Starter ($7/mo) for always-on — but free is fine for the hackathon.</p>
+  </div>
+</div>
+
+<!-- ── STEP 1 ── -->
+<h3 id="render-db">Step 1 — Create the PostgreSQL Database</h3>
+
+<div class="steps">
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h4>Go to render.com → Sign Up</h4>
+      <p>Use your GitHub account to sign in. This allows auto-deploy from your repo later. No credit card needed for free tier.</p>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h4>New + → PostgreSQL</h4>
+      <p>In the Render dashboard, click <strong>New +</strong> → <strong>PostgreSQL</strong>. Fill in:</p>
+      <table>
+        <tr><th>Field</th><th>Value</th></tr>
+        <tr><td>Name</td><td><code>goalsynce-db</code></td></tr>
+        <tr><td>Region</td><td>Singapore (closest to India) or Oregon</td></tr>
+        <tr><td>Plan</td><td>Free</td></tr>
+      </table>
+      <p>Click <strong>Create Database</strong>. It takes ~2 minutes to provision.</p>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num done">✓</div>
+    <div class="step-body">
+      <h4>Save the Internal Database URL</h4>
+      <p>Once created, go to the database's page → <strong>Info</strong> tab. Copy the <strong>Internal Database URL</strong> (starts with <code>postgresql://</code>). You'll paste this into the backend service's environment variables.</p>
+      <div class="callout blue" style="margin-top:0.75rem">
+        <span class="callout-icon">ℹ</span>
+        <div class="callout-body"><p>Use "Internal URL" not "External URL" — internal is faster and works within Render's network for free.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── STEP 2 ── -->
+<h3 id="render-backend">Step 2 — Deploy the Backend (Web Service)</h3>
+
+<div class="steps">
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h4>New + → Web Service → Connect GitHub</h4>
+      <p>Select your <code>goalsynce</code> repository. If it's not showing, click "Configure GitHub App" to grant Render access.</p>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h4>Configure the Web Service</h4>
+      <table>
+        <tr><th>Setting</th><th>Value</th></tr>
+        <tr><td>Name</td><td><code>goalsynce-api</code></td></tr>
+        <tr><td>Root Directory</td><td><code>server</code></td></tr>
+        <tr><td>Runtime</td><td>Node</td></tr>
+        <tr><td>Build Command</td><td><code>npm ci</code></td></tr>
+        <tr><td>Start Command</td><td><code>npm start</code></td></tr>
+        <tr><td>Plan</td><td>Free</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <h4>Add Environment Variables (Advanced → Add Env Var)</h4>
+      <p>Add these before clicking Create:</p>
+      <pre><code>DATABASE_URL = (paste Internal Database URL from Step 1)
+JWT_SECRET   = (run: openssl rand -base64 32)
+NODE_ENV     = production
+CLIENT_URL   = https://goalsynce.onrender.com  (← set after Step 3)
+SMTP_HOST    = sandbox.smtp.mailtrap.io
+SMTP_PORT    = 587
+SMTP_USER    = (your Mailtrap user)
+SMTP_PASS    = (your Mailtrap pass)</code></pre>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <h4>Click "Create Web Service"</h4>
+      <p>Render will pull your repo, run <code>npm ci</code>, then <code>npm start</code>. Watch the deploy log. First deploy takes 3–5 minutes. You'll see: <code>[Server] GoalSync API running on port ...</code></p>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num done">✓</div>
+    <div class="step-body">
+      <h4>Note your backend URL</h4>
+      <p>Render assigns a URL like <code>https://goalsynce-api.onrender.com</code>. Visit <code>/health</code> — you should see <code>{"status":"ok"}</code>. Note this URL for frontend env var.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── STEP 3 ── -->
+<h3 id="render-frontend">Step 3 — Deploy the Frontend (Static Site)</h3>
+
+<div class="steps">
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h4>New + → Static Site → Connect same GitHub repo</h4>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h4>Configure the Static Site</h4>
+      <table>
+        <tr><th>Setting</th><th>Value</th></tr>
+        <tr><td>Name</td><td><code>goalsynce</code></td></tr>
+        <tr><td>Root Directory</td><td><code>client</code></td></tr>
+        <tr><td>Build Command</td><td><code>npm ci &amp;&amp; npm run build</code></td></tr>
+        <tr><td>Publish Directory</td><td><code>dist</code></td></tr>
+        <tr><td>Plan</td><td>Free</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <h4>Add Frontend Environment Variable</h4>
+      <pre><code>VITE_API_URL = https://goalsynce-api.onrender.com/api</code></pre>
+      <p>Use the backend URL from Step 2. The <code>/api</code> suffix is important.</p>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <h4>Click "Create Static Site"</h4>
+      <p>Render runs <code>npm ci &amp;&amp; npm run build</code> inside <code>/client</code>, then serves the <code>dist/</code> folder. Build takes 2–3 minutes. Your frontend URL will be <code>https://goalsynce.onrender.com</code>.</p>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num done">✓</div>
+    <div class="step-body">
+      <h4>Note your frontend URL</h4>
+      <p>Go back to the backend service → Environment → update <code>CLIENT_URL</code> to your actual frontend URL. Click Save → backend auto-redeploys.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── STEP 4 ── -->
+<h3 id="render-migrate">Step 4 — Run Migrations &amp; Seed</h3>
+
+<div class="callout red">
+  <span class="callout-icon">⚠️</span>
+  <div class="callout-body">
+    <strong>Do this BEFORE testing the app</strong>
+    <p>The backend connects to an empty database. Migrations create the tables. Without this step, every API call returns a 500 error.</p>
+  </div>
+</div>
+
+<div class="steps">
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h4>Open Render Shell for the backend Web Service</h4>
+      <p>Go to your <code>goalsynce-api</code> service → <strong>Shell</strong> tab (top navigation). This opens an in-browser terminal inside your running container.</p>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h4>Run migrations</h4>
+      <pre><code>npm run migrate</code></pre>
+      <p>You'll see each migration file being applied. Expected output ends with: <code>[Migrate] ✓ All migrations complete.</code></p>
+      <div class="callout green" style="margin-top:0.75rem">
+        <span class="callout-icon">✓</span>
+        <div class="callout-body"><p>Migrations are idempotent — they track applied files in a <code>_migrations</code> table. Safe to run again if anything fails mid-way.</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <h4>Run the seed</h4>
+      <pre><code>npm run seed</code></pre>
+      <p>Seeds all 4 demo users (Admin, Manager, Employee x2), the active cycle, thrust areas, demo goals, Q1 actuals, manager check-ins, shared goal, and audit log entries. Expected end: <code>[Seed] ✅ Seed complete!</code></p>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num done">✓</div>
+    <div class="step-body">
+      <h4>Verify data</h4>
+      <p>In the same shell, run a quick sanity check:</p>
+      <pre><code>node -e "const {pool}=require('./src/config/db'); pool.query('SELECT email,role FROM users').then(r=>{console.table(r.rows);pool.end()})"</code></pre>
+      <p>You should see all 4 users listed.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── STEP 5 ── -->
+<h3 id="render-envlink">Step 5 — Link the Database (Alternative Method)</h3>
+<p>Instead of manually copying the DATABASE_URL, Render offers a one-click link. In your backend service → <strong>Environment</strong> tab → click <strong>Add from Database</strong> → select <code>goalsynce-db</code>. Render automatically injects <code>DATABASE_URL</code> and redeploys.</p>
+
+<!-- ── STEP 6 ── -->
+<h3 id="render-verify">Step 6 — Verify Everything is Live</h3>
+
+<p>Run through this verification sequence after all 3 services are up:</p>
+
+<ul class="checklist">
+  <li><span class="box"></span>Visit <code>https://goalsynce-api.onrender.com/health</code> → returns <code>{"status":"ok"}</code></li>
+  <li><span class="box"></span>Visit <code>https://goalsynce-api.onrender.com/ready</code> → returns <code>{"status":"ready","db":"ok"}</code></li>
+  <li><span class="box"></span><code>POST /api/auth/login</code> with <code>{"email":"admin@goalsynce.com","password":"Admin@123"}</code> → returns JWT token</li>
+  <li><span class="box"></span>Visit <code>https://goalsynce.onrender.com</code> → Login page loads, no console errors</li>
+  <li><span class="box"></span>Login as Employee → Dashboard shows Aarav's 4 approved goals</li>
+  <li><span class="box"></span>Login as Manager → "My Team" shows Aarav + Meera; "My Goals" shows Rahul's 2 goals</li>
+  <li><span class="box"></span>Login as Admin → Dashboard loads org stats</li>
+  <li><span class="box"></span>Navigate to <code>/admin/analytics</code> → charts render with data</li>
+  <li><span class="box"></span>Go to Reports → click "Download Excel" → file downloads</li>
+  <li><span class="box"></span>Go to Reports → click "Download CSV" → file downloads (this tests Fix 1)</li>
+  <li><span class="box"></span>Refresh any page (e.g., <code>/employee/goals</code>) → page loads (not 404)</li>
+</ul>
+
+<hr class="divider">
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2><span class="num">D</span> PART D — GitHub Setup &amp; Auto-Deploy</h2>
+
+<h3 id="github">GitHub Repository Structure</h3>
+<p>Push the entire monorepo as a single GitHub repo. Render's <code>rootDir</code> setting handles pointing to the right subfolder for each service.</p>
+
+<div class="filetree">
+<span class="dir">goalsynce/</span>               <span class="cmt"># GitHub repo root</span>
+├── <span class="new">.gitignore</span>             <span class="cmt"># Root gitignore (add this)</span>
+├── <span class="new">render.yaml</span>            <span class="cmt"># IaC for Render (add this)</span>
+├── README.md
+├── <span class="dir">server/</span>                <span class="cmt"># Backend — Render rootDir: server</span>
+│   ├── <span class="ok">.gitignore</span>
+│   ├── <span class="mod">src/</span>               <span class="cmt"># (all your source files)</span>
+│   ├── migrations/
+│   ├── scripts/
+│   ├── <span class="ok">package.json</span>
+│   ├── <span class="ok">Procfile</span>
+│   └── <span class="new">render.yaml</span>        <span class="cmt"># optional, can use root-level one</span>
+└── <span class="dir">client/</span>                <span class="cmt"># Frontend — Render rootDir: client</span>
+    ├── <span class="ok">.gitignore</span>
+    ├── <span class="new">public/_redirects</span>  <span class="cmt"># CRITICAL: add this file</span>
+    ├── src/
+    ├── <span class="ok">package.json</span>
+    └── <span class="ok">vite.config.js</span>
+</div>
+
+<h4>First push commands</h4>
+<pre><code><span class="comment"># From your project root folder:</span>
+git init
+git add .
+git commit -m <span class="str">"feat: initial GoalSync production build"</span>
+git branch -M main
+git remote add origin https://github.com/YOUR_USERNAME/goalsynce.git
+git push -u origin main</code></pre>
+
+<h3 id="render-yaml">render.yaml — Infrastructure as Code</h3>
+<p>Create this file at the <strong>repo root</strong>. Once you have it, you can tear down and recreate your entire Render setup with one click ("Blueprint" deploy in Render).</p>
+
+<pre><code><span class="comment"># render.yaml — place at REPO ROOT</span>
+<span class="key">databases</span>:
+  - <span class="key">name</span>: <span class="str">goalsynce-db</span>
+    <span class="key">plan</span>: <span class="str">free</span>
+    <span class="key">region</span>: <span class="str">singapore</span>
+
+<span class="key">services</span>:
+  - <span class="key">type</span>: <span class="str">web</span>
+    <span class="key">name</span>: <span class="str">goalsynce-api</span>
+    <span class="key">runtime</span>: <span class="str">node</span>
+    <span class="key">rootDir</span>: <span class="str">server</span>
+    <span class="key">plan</span>: <span class="str">free</span>
+    <span class="key">region</span>: <span class="str">singapore</span>
+    <span class="key">buildCommand</span>: <span class="str">npm ci</span>
+    <span class="key">startCommand</span>: <span class="str">npm start</span>
+    <span class="key">healthCheckPath</span>: <span class="str">/health</span>
+    <span class="key">envVars</span>:
+      - <span class="key">key</span>: <span class="str">NODE_ENV</span>
+        <span class="key">value</span>: <span class="str">production</span>
+      - <span class="key">key</span>: <span class="str">DATABASE_URL</span>
+        <span class="key">fromDatabase</span>:
+          <span class="key">name</span>: <span class="str">goalsynce-db</span>
+          <span class="key">property</span>: <span class="str">connectionString</span>
+      - <span class="key">key</span>: <span class="str">JWT_SECRET</span>
+        <span class="key">generateValue</span>: <span class="str">true</span>  <span class="comment"># Render generates a random secret</span>
+      - <span class="key">key</span>: <span class="str">CLIENT_URL</span>
+        <span class="key">value</span>: <span class="str">https://goalsynce.onrender.com</span>
+      - <span class="key">key</span>: <span class="str">JWT_EXPIRES_IN</span>
+        <span class="key">value</span>: <span class="str">8h</span>
+
+  - <span class="key">type</span>: <span class="str">web</span>
+    <span class="key">name</span>: <span class="str">goalsynce</span>
+    <span class="key">runtime</span>: <span class="str">static</span>
+    <span class="key">rootDir</span>: <span class="str">client</span>
+    <span class="key">plan</span>: <span class="str">free</span>
+    <span class="key">region</span>: <span class="str">singapore</span>
+    <span class="key">buildCommand</span>: <span class="str">npm ci &amp;&amp; npm run build</span>
+    <span class="key">staticPublishPath</span>: <span class="str">dist</span>
+    <span class="key">envVars</span>:
+      - <span class="key">key</span>: <span class="str">VITE_API_URL</span>
+        <span class="key">value</span>: <span class="str">https://goalsynce-api.onrender.com/api</span>
+    <span class="key">routes</span>:
+      - <span class="key">type</span>: <span class="str">rewrite</span>
+        <span class="key">source</span>: <span class="str">/*</span>
+        <span class="key">destination</span>: <span class="str">/index.html</span></code></pre>
+
+<div class="callout green">
+  <span class="callout-icon">✓</span>
+  <div class="callout-body">
+    <strong>The routes block in render.yaml replaces _redirects</strong>
+    <p>If you have the <code>render.yaml</code> with the <code>routes</code> section, you don't need the <code>public/_redirects</code> file separately. Either one works — both is also fine (no conflict).</p>
+  </div>
+</div>
+
+<h3 id="cicd">Auto-Deploy on Every Git Push</h3>
+<p>Once your GitHub repo is connected to Render, every push to <code>main</code> triggers auto-deploy. This is on by default. The flow is:</p>
+
+<div class="flow" style="flex-wrap:wrap">
+  <div class="flow-node"><code>git push origin main</code></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node blue">GitHub webhook fires</div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node orange">Render pulls new code</div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node green">Build + deploy (~3 min)</div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node">Live on your URL</div>
+</div>
+
+<p>To push a fix and redeploy:</p>
+<pre><code><span class="comment"># Fix a bug locally, then:</span>
+git add server/src/controllers/reports.controller.js
+git commit -m <span class="str">"fix: json2csv v6 API - use parse() not Parser class"</span>
+git push origin main
+<span class="comment"># Render auto-picks this up — check deploy log in dashboard</span></code></pre>
+
+<hr class="divider">
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2><span class="num">E</span> PART E — Email Setup (Mailtrap)</h2>
+
+<h3 id="email">Free Email for Demo (5 minutes)</h3>
+<p>Mailtrap catches all outgoing emails and shows them in an inbox — perfect for demos. No real emails are sent, so judges can see the full email flow without spamming anyone.</p>
+
+<div class="steps">
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h4>Sign up at mailtrap.io</h4>
+      <p>Free account. No credit card. Go to <strong>Email Testing → Inboxes → My Inbox → SMTP Settings</strong>.</p>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h4>Copy your SMTP credentials</h4>
+      <p>Choose the "Nodemailer" integration tab. You'll see values for Host, Port, Username, and Password. Copy each one.</p>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <h4>Set in Render environment variables</h4>
+      <pre><code>SMTP_HOST = sandbox.smtp.mailtrap.io
+SMTP_PORT = 587
+SMTP_USER = (your mailtrap username)
+SMTP_PASS = (your mailtrap password)
+SMTP_SECURE = false</code></pre>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num done">✓</div>
+    <div class="step-body">
+      <h4>Test: trigger an email</h4>
+      <p>Log in as an employee → submit goals. Log in as manager → approve a goal. Check Mailtrap inbox — you should see the notification emails arrive in real time.</p>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2><span class="num">F</span> PART F — Final Pre-Submission Checklist</h2>
+
+<h3 id="checklist">Run Through This Before Demo Day</h3>
+
+<h4>🔴 Bug Fixes Applied</h4>
+<ul class="checklist">
+  <li><span class="box"></span>Fix 1: <code>reports.controller.js</code> uses <code>csvParse(data)</code> not <code>new Parser()</code></li>
+  <li><span class="box"></span>Fix 2: <code>achievements.controller.js</code> cascades actuals to shared-goal children</li>
+  <li><span class="box"></span>Fix 3: <code>manager.routes.js</code> has <code>POST /shared-goals</code> route</li>
+  <li><span class="box"></span>Fix 4: <code>seed.js</code> creates 2 approved goals for Rahul (manager)</li>
+</ul>
+
+<h4>⚙️ Production Config</h4>
+<ul class="checklist">
+  <li><span class="box"></span><code>app.js</code> has <code>app.set('trust proxy', 1)</code></li>
+  <li><span class="box"></span><code>server.js</code> only loads dotenv in non-production</li>
+  <li><span class="box"></span><code>client/public/_redirects</code> file created with <code>/* /index.html 200</code></li>
+  <li><span class="box"></span>Root <code>.gitignore</code>, <code>server/.gitignore</code>, <code>client/.gitignore</code> all created</li>
+  <li><span class="box"></span>No <code>.env</code> files committed to git (<code>git status</code> shows clean)</li>
+</ul>
+
+<h4>🚀 Render Deployment</h4>
+<ul class="checklist">
+  <li><span class="box"></span>PostgreSQL database created in Render</li>
+  <li><span class="box"></span>Backend Web Service deployed and healthy (<code>/health</code> returns 200)</li>
+  <li><span class="box"></span>Frontend Static Site deployed and loads</li>
+  <li><span class="box"></span>Migrations run successfully (all 10 SQL files applied)</li>
+  <li><span class="box"></span>Seed run successfully (4 users + demo data)</li>
+  <li><span class="box"></span><code>CLIENT_URL</code> set to actual frontend URL in backend env vars</li>
+  <li><span class="box"></span><code>VITE_API_URL</code> set to actual backend URL in frontend env vars</li>
+  <li><span class="box"></span>CORS: frontend URL is in <code>allowedOrigins</code> (via <code>CLIENT_URL</code>)</li>
+</ul>
+
+<h4>🎯 Demo Journey Verified</h4>
+<ul class="checklist">
+  <li><span class="box"></span>Login as Employee (employee@goalsynce.com / Employee@123) → Dashboard shows 4 goals</li>
+  <li><span class="box"></span>Employee can add a new goal (Goal Setting window open in active cycle)</li>
+  <li><span class="box"></span>WeightageGauge updates in real-time while editing</li>
+  <li><span class="box"></span>Check-in page shows Q1 actuals, scores compute correctly</li>
+  <li><span class="box"></span>Login as Manager (manager@goalsynce.com / Manager@123)</li>
+  <li><span class="box"></span>Manager "My Goals" shows Rahul's 2 goals (not empty)</li>
+  <li><span class="box"></span>Manager "My Team" shows Aarav + Meera with colour-coded status</li>
+  <li><span class="box"></span>Manager can approve Meera's submitted goals</li>
+  <li><span class="box"></span>Manager can add a check-in comment on Aarav's Q1 actuals</li>
+  <li><span class="box"></span>Login as Admin (admin@goalsynce.com / Admin@123)</li>
+  <li><span class="box"></span>Admin Dashboard shows org-wide stats</li>
+  <li><span class="box"></span>/admin/analytics loads all 4 charts</li>
+  <li><span class="box"></span>Reports → Download Excel → file downloads correctly</li>
+  <li><span class="box"></span>Reports → Download CSV → file downloads correctly (tests Fix 1)</li>
+  <li><span class="box"></span>Settings → create/edit a cycle → thrust areas tab works</li>
+  <li><span class="box"></span>Audit log page shows entries</li>
+  <li><span class="box"></span>Notification bell in navbar shows bell icon, no console errors</li>
+  <li><span class="box"></span>Refreshing any deep link (e.g., <code>/manager/approvals</code>) does not 404</li>
+  <li><span class="box"></span>Mobile: open on phone browser, app is usable (judges check this)</li>
+</ul>
+
+<h4>📋 Submission Deliverables</h4>
+<ul class="checklist">
+  <li><span class="box"></span>Live URL: <code>https://goalsynce.onrender.com</code></li>
+  <li><span class="box"></span>GitHub repo link (public)</li>
+  <li><span class="box"></span>Architecture diagram (the one from the original manual)</li>
+  <li><span class="box"></span>Credentials table in README.md</li>
+</ul>
+
+<h4>README.md — add this section</h4>
+<pre><code><span class="comment">## 🚀 Live Demo</span>
+URL: https://goalsynce.onrender.com
+
+<span class="comment">## 🔑 Demo Credentials</span>
+| Role     | Email                     | Password    |
+|----------|---------------------------|-------------|
+| Admin    | admin@goalsynce.com       | Admin@123   |
+| Manager  | manager@goalsynce.com     | Manager@123 |
+| Employee | employee@goalsynce.com    | Employee@123|
+| Employee | employee2@goalsynce.com   | Employee@123|
+
+<span class="comment">## ⚠️ Cold Start Note</span>
+The backend runs on Render's free tier and may take 30 seconds
+to wake up on first visit. Please allow for this during the demo.</code></pre>
+
+<hr class="divider">
+
+<div class="callout green" style="margin-top:2rem">
+  <span class="callout-icon">🏆</span>
+  <div class="callout-body">
+    <strong>You're ready to ship</strong>
+    <p>Apply the 4 bug fixes → push to GitHub → Render auto-deploys → run migrations via Shell → seed demo data → verify checklist → submit. The full deploy from first push to live URL takes under 15 minutes once the code is clean. Good luck at AtomQuest 1.0.</p>
+  </div>
+</div>
+
+<p style="color:#8c959f;font-size:12px;margin-top:3rem;text-align:center;">GoalSync · Production &amp; Render Deployment Guide v1.0 · AtomQuest Hackathon 1.0</p>
+
+</main>
+</body>
+</html>
