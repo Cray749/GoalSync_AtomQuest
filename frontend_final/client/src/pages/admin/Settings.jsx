@@ -280,9 +280,9 @@ export default function AdminSettings() {
       )}
 
       {/* Create Cycle Modal */}
-      <Modal isOpen={cycleModal} onClose={() => setCycleModal(false)} title="Create Goal Cycle" size="lg"
+      <Modal isOpen={cycleModal} onClose={() => setCycleModal(false)} title="Create Goal Cycle" size="xl"
         footer={<><button onClick={() => setCycleModal(false)} className="gs-btn-ghost">Cancel</button><button onClick={handleCreateCycle} disabled={saving} className="gs-btn">{saving ? 'Creating…' : 'Create Cycle'}</button></>}>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-5">
           {[['name','Cycle Name','text','e.g. FY 2026-27'],['year','Year','number','2026'],
             ['phase1_start','Phase 1 Start','date',''],['phase1_end','Phase 1 End','date',''],
             ['q1_start','Q1 Start','date',''],['q1_end','Q1 End','date',''],

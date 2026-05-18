@@ -10,6 +10,7 @@ import { useAuth } from './hooks/useAuth';
 // ── Lazy-load all pages for code splitting ─────────────────────────────────
 const Login = lazy(() => import('./pages/Login'));
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 
 // Employee
 const EmployeeDashboard = lazy(() => import('./pages/employee/Dashboard'));
@@ -110,6 +111,19 @@ export default function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/employee/notifications"
+                element={
+                  <ProtectedRoute>
+                    <RoleGuard
+                      roles={['employee', 'manager', 'admin']}
+                      fallback={<Navigate to="/login" replace />}
+                    >
+                      <Page component={NotificationsPage} />
+                    </RoleGuard>
+                  </ProtectedRoute>
+                }
+              />
 
               {/* ── Manager Routes ─────────────────────────────── */}
               <Route
@@ -147,6 +161,19 @@ export default function App() {
                       fallback={<Navigate to="/employee" replace />}
                     >
                       <Page component={CheckinView} />
+                    </RoleGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/manager/notifications"
+                element={
+                  <ProtectedRoute>
+                    <RoleGuard
+                      roles={['manager', 'admin']}
+                      fallback={<Navigate to="/employee" replace />}
+                    >
+                      <Page component={NotificationsPage} />
                     </RoleGuard>
                   </ProtectedRoute>
                 }
@@ -219,13 +246,26 @@ export default function App() {
                   </ProtectedRoute>
                 }
               />
-
-              {/* Notifications — all authenticated roles */}
               <Route
-                path="/notifications"
+                path="/admin/notifications"
                 element={
                   <ProtectedRoute>
-                    <Page component={NotificationsPage} />
+                    <RoleGuard
+                      roles={['admin']}
+                      fallback={<Navigate to="/employee" replace />}
+                    >
+                      <Page component={NotificationsPage} />
+                    </RoleGuard>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Profile — all authenticated roles */}
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Page component={ProfilePage} />
                   </ProtectedRoute>
                 }
               />

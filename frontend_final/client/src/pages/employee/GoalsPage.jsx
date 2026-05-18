@@ -137,10 +137,15 @@ export default function GoalsPage() {
           ))}
           {goals.length === 0 && (
             <div className="col-span-3 gs-card p-10 text-center border-dashed border-[#1e3a70]">
-              <p className="text-slate-400 text-sm">No goals added yet.</p>
-              {canAddGoal && (
+              <p className="text-slate-400 text-sm mb-2">No goals added yet.</p>
+              {canAddGoal ? (
                 <button onClick={() => setShowForm(true)} className="gs-btn mt-4">Add First Goal</button>
-              )}
+              ) : !cycle?.is_goal_setting_open ? (
+                <div className="inline-block px-4 py-2 mt-2 bg-amber-900/10 border border-amber-500/20 rounded">
+                  <p className="text-sm font-medium text-amber-400">Goal Setting is Closed</p>
+                  <p className="text-xs text-amber-500/80 mt-0.5">Goals can only be added during the active Phase 1 window.</p>
+                </div>
+              ) : null}
             </div>
           )}
         </div>

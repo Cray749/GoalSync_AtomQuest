@@ -100,6 +100,13 @@ export default function Navbar() {
                     <p className="text-xs text-slate-500">{user?.email}</p>
                     <p className="text-xs text-[#3b82f6] mt-0.5 capitalize">{user?.department} · {user?.role}</p>
                   </div>
+                  <Link
+                    to="/profile"
+                    onClick={() => setUserOpen(false)}
+                    className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-300 hover:bg-[#0f2040] transition-colors"
+                  >
+                    My Profile
+                  </Link>
                   {user?.role === 'admin' && (
                     <Link
                       to="/admin"

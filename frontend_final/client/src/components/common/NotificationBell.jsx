@@ -399,7 +399,11 @@ export default function NotificationBell() {
               flexShrink: 0,
             }}>
               <button
-                onClick={() => { setOpen(false); handleNavigate('/notifications'); }}
+                onClick={() => {
+                  setOpen(false);
+                  const basePath = location.pathname.startsWith('/admin') ? '/admin' : location.pathname.startsWith('/manager') ? '/manager' : '/employee';
+                  handleNavigate(`${basePath}/notifications`);
+                }}
                 style={{
                   fontSize: 12,
                   color: 'var(--color-text-secondary)',

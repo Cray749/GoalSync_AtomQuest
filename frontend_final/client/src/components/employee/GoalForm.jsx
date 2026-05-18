@@ -170,17 +170,23 @@ export default function GoalForm({ isOpen, onClose, onSuccess, editGoal = null, 
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="gs-label">Thrust Area *</label>
-            <select
-              className="gs-select"
-              value={form.thrust_area_id}
-              onChange={(e) => set('thrust_area_id', e.target.value)}
-              disabled={isSharedChild}
-            >
-              <option value="">Select area…</option>
-              {thrustAreas.map((ta) => (
-                <option key={ta.id} value={ta.id}>{ta.name}</option>
-              ))}
-            </select>
+            {thrustAreas.length === 0 ? (
+              <div className="text-xs text-amber-400 bg-amber-900/10 p-2.5 rounded border border-amber-500/20 mt-1">
+                No thrust areas exist for this cycle. Please ask your administrator to configure them in Settings.
+              </div>
+            ) : (
+              <select
+                className="gs-select"
+                value={form.thrust_area_id}
+                onChange={(e) => set('thrust_area_id', e.target.value)}
+                disabled={isSharedChild}
+              >
+                <option value="">Select area…</option>
+                {thrustAreas.map((ta) => (
+                  <option key={ta.id} value={ta.id}>{ta.name}</option>
+                ))}
+              </select>
+            )}
             {errors.thrust_area_id && <p className="gs-field-error">{errors.thrust_area_id}</p>}
           </div>
           <div>
