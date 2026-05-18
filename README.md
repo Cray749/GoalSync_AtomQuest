@@ -1,4 +1,4 @@
-# GoalSync — In-House Goal Setting & Tracking Portal
+# Nucleas — In-House Goal Setting & Tracking Portal
 
 > **AtomQuest Hackathon 1.0** submission — full-stack goal management system with quarterly check-ins, shared KPI cascading, analytics, and email notifications.
 
@@ -6,7 +6,7 @@
 
 ## 🚀 Live Demo
 
-**URL:** https://goalsynce.onrender.com
+**URL:** https://nucleus-6q6e.onrender.com
 
 > ⚠️ **Cold Start Note:** The backend runs on Render's free tier and may take ~30 seconds to wake up on the first request. Please allow for this during the demo.
 
@@ -16,10 +16,10 @@
 
 | Role     | Email                      | Password      |
 |----------|----------------------------|---------------|
-| Admin    | admin@goalsynce.com        | Admin@123     |
-| Manager  | manager@goalsynce.com      | Manager@123   |
-| Employee | employee@goalsynce.com     | Employee@123  |
-| Employee | employee2@goalsynce.com    | Employee@123  |
+| Admin    | admin@nucleas.com        | Admin@123     |
+| Manager  | manager@nucleas.com      | Manager@123   |
+| Employee | employee@nucleas.com     | Employee@123  |
+| Employee | employee2@nucleas.com    | Employee@123  |
 
 ---
 
@@ -107,4 +107,4 @@ See [`PRODUCTION_DEPLOY_GUIDE.html`](./PRODUCTION_DEPLOY_GUIDE.html) for the ful
 
 ---
 
-*GoalSync · AtomQuest Hackathon 1.0*
+*Nucleas · AtomQuest Hackathon 1.0*

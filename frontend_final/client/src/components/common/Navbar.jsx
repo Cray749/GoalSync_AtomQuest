@@ -35,7 +35,7 @@ export default function Navbar() {
             <line x1="2" y1="12" x2="5" y2="12" strokeLinecap="round" />
             <line x1="19" y1="12" x2="22" y2="12" strokeLinecap="round" />
           </svg>
-          <span className="font-semibold text-slate-100 tracking-tight">GoalSync</span>
+          <span className="font-semibold text-slate-100 tracking-tight">Nucleas</span>
           <span className="hidden sm:block text-xs text-slate-600 font-mono pl-2 border-l border-[#162d58]">
             FY 2025-26
           </span>

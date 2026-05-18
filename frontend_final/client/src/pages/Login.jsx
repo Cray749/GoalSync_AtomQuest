@@ -4,10 +4,10 @@ import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../components/common/Toast';
 
 const DEMO_CREDS = [
-  { label: 'Login as Admin', email: 'admin@goalsynce.com', password: 'Admin@123', role: 'admin', color: 'text-violet-400 border-violet-500/30 hover:bg-violet-900/20' },
-  { label: 'Login as Manager', email: 'manager@goalsynce.com', password: 'Manager@123', role: 'manager', color: 'text-amber-400 border-amber-500/30 hover:bg-amber-900/20' },
-  { label: 'Login as Employee', email: 'employee@goalsynce.com', password: 'Employee@123', role: 'employee', color: 'text-blue-400 border-blue-500/30 hover:bg-blue-900/20' },
-  { label: 'Employee 2', email: 'employee2@goalsynce.com', password: 'Employee@123', role: 'employee', color: 'text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/20' },
+  { label: 'Login as Admin', email: 'admin@nucleas.com', password: 'Admin@123', role: 'admin', color: 'text-violet-400 border-violet-500/30 hover:bg-violet-900/20' },
+  { label: 'Login as Manager', email: 'manager@nucleas.com', password: 'Manager@123', role: 'manager', color: 'text-amber-400 border-amber-500/30 hover:bg-amber-900/20' },
+  { label: 'Login as Employee', email: 'employee@nucleas.com', password: 'Employee@123', role: 'employee', color: 'text-blue-400 border-blue-500/30 hover:bg-blue-900/20' },
+  { label: 'Employee 2', email: 'employee2@nucleas.com', password: 'Employee@123', role: 'employee', color: 'text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/20' },
 ];
 
 function getRoleHome(role) {
@@ -78,7 +78,7 @@ export default function Login() {
               <line x1="18.5" y1="12" x2="22" y2="12" strokeLinecap="round" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-slate-100 tracking-tight">GoalSync</h1>
+          <h1 className="text-2xl font-bold text-slate-100 tracking-tight">Nucleas</h1>
           <p className="text-sm text-slate-500 mt-1">In-house goal setting & tracking</p>
         </div>
 
@@ -158,7 +158,7 @@ export default function Login() {
 
         {/* Footer */}
         <p className="text-center text-xs text-slate-600 mt-6">
-          AtomQuest Hackathon 1.0 · GoalSync v1.0
+          AtomQuest Hackathon 1.0 · Nucleas v1.0
         </p>
       </div>
     </div>

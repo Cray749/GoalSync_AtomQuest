@@ -27,7 +27,7 @@ async function startServer() {
 
   // ── 2. Start Express ──────────────────────────────────────
   app.listen(PORT, () => {
-    console.log(`[Server] GoalSync API running on port ${PORT}`);
+    console.log(`[Server] Nucleas API running on port ${PORT}`);
     console.log(`[Server] Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`[Server] Health: http://localhost:${PORT}/health`);
   });

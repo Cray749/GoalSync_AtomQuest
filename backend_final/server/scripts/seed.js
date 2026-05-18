@@ -21,7 +21,7 @@ const DEMO_USERS = [
   {
     id: '00000000-0000-0000-0000-000000000001',
     name: 'Priya Sharma',
-    email: 'admin@goalsynce.com',
+    email: 'admin@nucleas.com',
     password: 'Admin@123',
     role: 'admin',
     department: 'HR',
@@ -30,7 +30,7 @@ const DEMO_USERS = [
   {
     id: '00000000-0000-0000-0000-000000000002',
     name: 'Rahul Verma',
-    email: 'manager@goalsynce.com',
+    email: 'manager@nucleas.com',
     password: 'Manager@123',
     role: 'manager',
     department: 'Sales',
@@ -39,7 +39,7 @@ const DEMO_USERS = [
   {
     id: '00000000-0000-0000-0000-000000000003',
     name: 'Aarav Singh',
-    email: 'employee@goalsynce.com',
+    email: 'employee@nucleas.com',
     password: 'Employee@123',
     role: 'employee',
     department: 'Sales',
@@ -48,7 +48,7 @@ const DEMO_USERS = [
   {
     id: '00000000-0000-0000-0000-000000000004',
     name: 'Meera Patel',
-    email: 'employee2@goalsynce.com',
+    email: 'employee2@nucleas.com',
     password: 'Employee@123',
     role: 'employee',
     department: 'Sales',
@@ -365,10 +365,10 @@ async function seed() {
 
     await client.query('COMMIT');
     console.log('\n[Seed] ✅ Seed complete! Demo credentials:');
-    console.log('   Admin:    admin@goalsynce.com    /  Admin@123');
-    console.log('   Manager:  manager@goalsynce.com  /  Manager@123');
-    console.log('   Employee: employee@goalsynce.com /  Employee@123');
-    console.log('   Employee: employee2@goalsynce.com/  Employee@123\n');
+    console.log('   Admin:    admin@nucleas.com    /  Admin@123');
+    console.log('   Manager:  manager@nucleas.com  /  Manager@123');
+    console.log('   Employee: employee@nucleas.com /  Employee@123');
+    console.log('   Employee: employee2@nucleas.com/  Employee@123\n');
   } catch (err) {
     await client.query('ROLLBACK').catch(() => { });
     console.error('[Seed] ERROR:', err.message);

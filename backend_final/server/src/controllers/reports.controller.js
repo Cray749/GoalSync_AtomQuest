@@ -268,7 +268,7 @@ function _sendCsv(res, data, filename) {
 async function _sendExcel(res, data, sheetTitle, filename) {
   try {
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'GoalSync';
+    workbook.creator = 'Nucleas';
     workbook.created = new Date();
 
     const sheet = workbook.addWorksheet(sheetTitle);

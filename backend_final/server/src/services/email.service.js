@@ -55,7 +55,7 @@ function getTransport() {
   return _transport;
 }
 
-const FROM_ADDRESS = process.env.EMAIL_FROM || '"GoalSync" <noreply@goalsynce.app>';
+const FROM_ADDRESS = process.env.EMAIL_FROM || '"Nucleas" <noreply@nucleas.app>';
 const CLIENT_URL   = process.env.CLIENT_URL  || 'http://localhost:5173';
 
 // ─── HTML template engine (no external dep) ───────────────────────────────────
@@ -103,7 +103,7 @@ function wrapInShell({ title, preheader, body, ctaText, ctaUrl }) {
               <tr>
                 <td>
                   <span style="font-size:18px;font-weight:600;color:#ffffff;
-                                letter-spacing:-0.3px;">GoalSync</span>
+                                letter-spacing:-0.3px;">Nucleas</span>
                   <span style="font-size:11px;color:#85B7EB;margin-left:8px;">
                     Performance Portal
                   </span>
@@ -138,9 +138,9 @@ function wrapInShell({ title, preheader, body, ctaText, ctaUrl }) {
         <tr>
           <td style="padding:16px 32px 24px;">
             <p style="margin:0;font-size:12px;color:#888780;line-height:1.6;">
-              This is an automated message from GoalSync. Please do not reply directly
+              This is an automated message from Nucleas. Please do not reply directly
               to this email.<br/>
-              &copy; ${new Date().getFullYear()} GoalSync · AtomQuest
+              &copy; ${new Date().getFullYear()} Nucleas · AtomQuest
             </p>
           </td>
         </tr>
@@ -251,7 +251,7 @@ async function sendGoalsSubmittedEmail({ managerEmail, managerName, employeeName
 
   return send({
     to:      managerEmail,
-    subject: `[GoalSync] ${employeeName} has submitted goals for review`,
+    subject: `[Nucleas] ${employeeName} has submitted goals for review`,
     html:    wrapInShell({
       title:    `${employeeName} submitted goals`,
       preheader: `${goalCount} goals awaiting your approval for ${cycleName}`,
@@ -277,11 +277,11 @@ async function sendGoalsApprovedEmail({ employeeEmail, employeeName, managerName
     p(`Hi ${employeeName},`) +
     p(`Great news! <strong>${managerName}</strong> has approved your goals. Your goals are now locked and the check-in cycle will begin at the next quarterly window.`) +
     highlight('Approved', `${approvedCount} goal${approvedCount !== 1 ? 's' : ''} finalized · ${cycleName}`, '#1D9E75') +
-    p('You can view your approved goals and track your progress on the GoalSync dashboard.');
+    p('You can view your approved goals and track your progress on the Nucleas dashboard.');
 
   return send({
     to:      employeeEmail,
-    subject: `[GoalSync] Your goals have been approved ✅`,
+    subject: `[Nucleas] Your goals have been approved ✅`,
     html:    wrapInShell({
       title:    'Your goals have been approved',
       preheader: `${managerName} approved ${approvedCount} goals for ${cycleName}`,
@@ -326,7 +326,7 @@ async function sendGoalsReworkEmail({ employeeEmail, employeeName, managerName, 
 
   return send({
     to:      employeeEmail,
-    subject: `[GoalSync] Goals returned for revision`,
+    subject: `[Nucleas] Goals returned for revision`,
     html:    wrapInShell({
       title:    'Action required: goal revision',
       preheader: `${managerName} has returned "${goalTitle}" for changes`,
@@ -363,7 +363,7 @@ async function sendQuarterOpenEmail({ employees, quarter, cycleName, windowEnd }
 
     return {
       to:      email,
-      subject: `[GoalSync] ${quarter} Check-in window is now open`,
+      subject: `[Nucleas] ${quarter} Check-in window is now open`,
       html:    wrapInShell({
         title:    `${quarter} Check-in is open`,
         preheader: `Log your achievements before ${deadline}`,
@@ -400,16 +400,16 @@ async function sendEscalationEmail({ notifyEmail, notifyName, targetName, reason
     p(`Hi ${notifyName},`) +
     warning(`${icon} <strong>${targetName}</strong> has not yet ${action}. This is ${daysOverdue} day${daysOverdue !== 1 ? 's' : ''} overdue.`) +
     p(`<strong>Reason for escalation:</strong> ${reason}`) +
-    p('Please follow up with them directly or take corrective action in GoalSync. Continued inaction may affect cycle completion metrics.');
+    p('Please follow up with them directly or take corrective action in Nucleas. Continued inaction may affect cycle completion metrics.');
 
   return send({
     to:      notifyEmail,
-    subject: `[GoalSync] ⚠️ Action Required: ${targetName} — ${action}`,
+    subject: `[Nucleas] ⚠️ Action Required: ${targetName} — ${action}`,
     html:    wrapInShell({
       title:    `Action required: ${icon} ${targetName}`,
       preheader: `${targetName} has not ${action} — ${daysOverdue} days overdue`,
       body,
-      ctaText:  'View in GoalSync',
+      ctaText:  'View in Nucleas',
       ctaUrl:   `${CLIENT_URL}/manager/team`,
     }),
   });

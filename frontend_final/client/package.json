@@ -1,7 +1,7 @@
 {
-  "name": "goalsynce-client",
+  "name": "nucleas-client",
   "version": "1.0.0",
-  "description": "GoalSync Frontend — AtomQuest Hackathon 1.0",
+  "description": "Nucleas Frontend — AtomQuest Hackathon 1.0",
   "private": true,
   "type": "module",
   "scripts": {
