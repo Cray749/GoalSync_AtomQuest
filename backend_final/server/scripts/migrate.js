@@ -28,7 +28,7 @@ async function migrate() {
       )
     `);
 
-    const migrationsDir = path.join(__dirname, '../../../migrations');
+    const migrationsDir = path.join(__dirname, '../migrations');
     const files = fs.readdirSync(migrationsDir)
       .filter(f => f.endsWith('.sql'))
       .sort();
