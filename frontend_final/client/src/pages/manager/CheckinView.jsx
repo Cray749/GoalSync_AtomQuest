@@ -46,7 +46,9 @@ export default function CheckinView() {
     setGoalsLoading(true);
     try {
       const res = await managerService.getEmployeeGoals(employeeId);
-      setEmployeeGoals((res.data.data || []).filter((g) => g.is_locked));
+      const goalsData = res.data.data?.goals || res.data.data || [];
+      const goalsArr = Array.isArray(goalsData) ? goalsData : [];
+      setEmployeeGoals(goalsArr.filter((g) => g.status === 'approved'));
     } catch (err) {
       toast(err.message, 'error');
     } finally {

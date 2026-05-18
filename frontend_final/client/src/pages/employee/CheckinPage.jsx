@@ -32,7 +32,9 @@ export default function CheckinPage() {
         goalService.getMyGoals(),
         cycleService.getActive(),
       ]);
-      const fetchedGoals = (goalsRes.data.data || []).filter((g) => g.is_locked);
+      const goalsPayload = goalsRes.data.data;
+      const allGoals = goalsPayload?.goals ?? (Array.isArray(goalsPayload) ? goalsPayload : []);
+      const fetchedGoals = allGoals.filter((g) => g.status === 'approved');
       setGoals(fetchedGoals);
       const fetchedCycle = cycleRes.data.data;
       setCycle(fetchedCycle);

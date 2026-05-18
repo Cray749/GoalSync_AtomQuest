@@ -9,6 +9,7 @@ import { useAuth } from './hooks/useAuth';
 
 // ── Lazy-load all pages for code splitting ─────────────────────────────────
 const Login = lazy(() => import('./pages/Login'));
+const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
 
 // Employee
 const EmployeeDashboard = lazy(() => import('./pages/employee/Dashboard'));
@@ -215,6 +216,16 @@ export default function App() {
                     >
                       <Page component={Analytics} />
                     </RoleGuard>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Notifications — all authenticated roles */}
+              <Route
+                path="/notifications"
+                element={
+                  <ProtectedRoute>
+                    <Page component={NotificationsPage} />
                   </ProtectedRoute>
                 }
               />
