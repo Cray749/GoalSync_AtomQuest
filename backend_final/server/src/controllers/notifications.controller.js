@@ -3,17 +3,17 @@
  * GoalSync — Notification endpoint handlers.
  */
 
-const notifService  = require('../services/notification.service');
-const emailService  = require('../services/email.service');
-const { query }     = require('../config/db');
+const notifService = require('../services/notification.service');
+const emailService = require('../services/email.service');
+const { query } = require('../config/db');
 const { sendSuccess, sendError } = require('../utils/response');
 const { triggerManualRun } = require('../jobs/escalation.job');
 
 // ─── GET /api/notifications ────────────────────────────────────────────────────
 exports.getMyNotifications = async (req, res) => {
   try {
-    const limit      = Math.min(parseInt(req.query.limit  || '20', 10), 100);
-    const offset     = parseInt(req.query.offset || '0', 10);
+    const limit = Math.min(parseInt(req.query.limit || '20', 10), 100);
+    const offset = parseInt(req.query.offset || '0', 10);
     const unreadOnly = req.query.unread === 'true';
 
     const { notifications, unreadCount } = await notifService.getUserNotifications(
@@ -64,7 +64,7 @@ exports.deleteNotification = async (req, res) => {
 exports.broadcastQuarterOpen = async (req, res) => {
   try {
     const { quarter, cycle_id } = req.body;
-    if (!quarter || !['Q1','Q2','Q3','Q4'].includes(quarter)) {
+    if (!quarter || !['Q1', 'Q2', 'Q3', 'Q4'].includes(quarter)) {
       return sendError(res, 'Valid quarter (Q1–Q4) is required', 400);
     }
 
@@ -85,8 +85,8 @@ exports.broadcastQuarterOpen = async (req, res) => {
     const empResult = await query(
       `SELECT id, name, email FROM users WHERE role = 'employee' AND is_active = TRUE`
     );
-    const employees    = empResult.rows.map(r => ({ email: r.email, name: r.name }));
-    const employeeIds  = empResult.rows.map(r => r.id);
+    const employees = empResult.rows.map(r => ({ email: r.email, name: r.name }));
+    const employeeIds = empResult.rows.map(r => r.id);
 
     const [emailResult, notifCount] = await Promise.all([
       emailService.sendQuarterOpenEmail({
@@ -99,7 +99,7 @@ exports.broadcastQuarterOpen = async (req, res) => {
     ]);
 
     return sendSuccess(res, {
-      emailsSent:   emailResult.sent,
+      emailsSent: emailResult.sent,
       emailsFailed: emailResult.failed,
       notifCreated: notifCount,
     }, `${quarter} broadcast sent to ${employees.length} employees`);
@@ -107,6 +107,7 @@ exports.broadcastQuarterOpen = async (req, res) => {
     return sendError(res, err.message, 500);
   }
 };
+
 
 // ─── POST /api/admin/escalations/run (admin) ──────────────────────────────────
 exports.runEscalationsManually = async (req, res) => {
