@@ -61,6 +61,70 @@ async function getTeam(req, res) {
 }
 
 // ──────────────────────────────────────────────────────────────
+// GET /api/manager/team-progress
+// Team progress including quarterly scores and overall score.
+// ──────────────────────────────────────────────────────────────
+async function getTeamProgress(req, res) {
+  try {
+    const cycleId = req.query.cycle_id || (await cycleService.getActiveCycle())?.id;
+    if (!cycleId) return sendSuccess(res, [], 'No active cycle');
+
+    // Get team members
+    const { rows: team } = await query(
+      'SELECT id, name FROM users WHERE manager_id = $1 AND is_active = TRUE',
+      [req.user.id]
+    );
+
+    const result = [];
+    const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+
+    for (const member of team) {
+      const { rows: goals } = await query(`
+        SELECT g.*
+        FROM goals g
+        WHERE g.employee_id = $1 AND g.cycle_id = $2 AND g.status = 'approved'
+      `, [member.id, cycleId]);
+
+      let achievements = [];
+      if (goals.length > 0) {
+        const ids = goals.map(g => g.id);
+        const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
+        const { rows: achRows } = await query(`
+          SELECT * FROM goal_achievements WHERE goal_id IN (${placeholders})
+        `, ids);
+        achievements = achRows;
+      }
+
+      const quarterly_scores = { Q1: null, Q2: null, Q3: null, Q4: null };
+      let latestScore = 0;
+      let hasData = false;
+
+      for (const q of quarters) {
+        const enriched = scoreService.enrichGoalsWithScores(goals, achievements, q);
+        const hasActuals = enriched.some(g => g.actual_value !== null && g.actual_value !== undefined);
+        if (hasActuals) {
+          const score = scoreService.calculateOverallScore(enriched);
+          quarterly_scores[q] = scoreService.scoreToDisplay(score);
+          latestScore = quarterly_scores[q];
+          hasData = true;
+        }
+      }
+
+      result.push({
+        employee_id: member.id,
+        employee_name: member.name,
+        overall_score_pct: hasData ? latestScore : 0,
+        quarterly_scores
+      });
+    }
+
+    return sendSuccess(res, result, 'Team progress fetched');
+  } catch (err) {
+    return sendError(res, err.message, 500);
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
 // GET /api/manager/team/:employee_id/goals
 // Full goal sheet for a specific team member.
 // ──────────────────────────────────────────────────────────────
@@ -567,4 +631,5 @@ module.exports = {
   submitCheckin,
   getCheckins,
   pushSharedGoal,
+  getTeamProgress,
 };

@@ -24,6 +24,6 @@ router.post('/shared-goals',                      ctrl.pushSharedGoal);
 
 // Aliases needed by frontend
 router.get('/approval-queue',   ctrl.getTeam);          // frontend filters submitted goals
-router.get('/team-progress',    ctrl.getTeam);          // frontend computes scores client-side
+router.get('/team-progress',    ctrl.getTeamProgress);  // returns quarterly scores
 
 module.exports = router;
