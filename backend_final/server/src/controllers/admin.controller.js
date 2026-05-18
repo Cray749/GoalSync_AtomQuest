@@ -437,7 +437,7 @@ async function getAuditLogs(req, res) {
     const offset = (Number(page) - 1) * Number(limit);
 
     const { rows } = await query(`
-      SELECT al.*, u.name AS user_name, u.email AS user_email,
+      SELECT al.*, u.name AS actor_name, u.email AS actor_email, u.role AS actor_role,
              g.title AS goal_title
       FROM audit_logs al
       LEFT JOIN users u ON u.id = al.user_id
@@ -460,6 +460,90 @@ async function getAuditLogs(req, res) {
   } catch (err) { return sendError(res, err.message, 500); }
 }
 
+// ══════════════════════════════════════════════════════════════
+// ORG STATS — used by Admin Overview top stat cards
+// GET /api/admin/stats
+// ══════════════════════════════════════════════════════════════
+
+async function getOrgStats(req, res) {
+  try {
+    const cycleId = req.query.cycle_id || (await cycleService.getActiveCycle())?.id;
+
+    // User counts
+    const { rows: userRows } = await query(`
+      SELECT
+        COUNT(*) FILTER (WHERE role = 'employee' AND is_active = TRUE) AS employees,
+        COUNT(*) FILTER (WHERE role = 'manager'  AND is_active = TRUE) AS managers,
+        COUNT(*) FILTER (WHERE role = 'admin'    AND is_active = TRUE) AS admins,
+        COUNT(*) FILTER (WHERE is_active = TRUE)                       AS total
+      FROM users
+    `);
+
+    const users = userRows[0];
+
+    if (!cycleId) {
+      return sendSuccess(res, {
+        cycle: null,
+        users: {
+          employees: Number(users.employees),
+          managers:  Number(users.managers),
+          admins:    Number(users.admins),
+          total:     Number(users.total),
+        },
+        goals: {
+          total: 0, draft: 0, submitted: 0, approved: 0, rework: 0,
+          approval_rate_pct: 0, submission_rate_pct: 0,
+        },
+      }, 'Org stats — no active cycle');
+    }
+
+    // Active cycle
+    const { rows: cycleRows } = await query(
+      'SELECT * FROM goal_cycles WHERE id = $1', [cycleId]
+    );
+
+    // Goal counts for this cycle (exclude shared template/parent goals owned by admin/manager)
+    const { rows: goalRows } = await query(`
+      SELECT
+        COUNT(*) AS total,
+        COUNT(*) FILTER (WHERE g.status = 'draft')      AS draft,
+        COUNT(*) FILTER (WHERE g.status = 'submitted')  AS submitted,
+        COUNT(*) FILTER (WHERE g.status = 'approved')   AS approved,
+        COUNT(*) FILTER (WHERE g.status = 'rework')     AS rework
+      FROM goals g
+      JOIN users u ON u.id = g.employee_id
+      WHERE g.cycle_id = $1 AND u.role = 'employee' AND u.is_active = TRUE
+    `, [cycleId]);
+
+    const g = goalRows[0];
+    const total     = Number(g.total);
+    const submitted = Number(g.submitted);
+    const approved  = Number(g.approved);
+
+    const approvalRate   = total > 0 ? Math.round((approved  / total) * 100) : 0;
+    const submissionRate = total > 0 ? Math.round(((submitted + approved) / total) * 100) : 0;
+
+    return sendSuccess(res, {
+      cycle: cycleRows[0] || null,
+      users: {
+        employees: Number(users.employees),
+        managers:  Number(users.managers),
+        admins:    Number(users.admins),
+        total:     Number(users.total),
+      },
+      goals: {
+        total,
+        draft:     Number(g.draft),
+        submitted,
+        approved,
+        rework:    Number(g.rework),
+        approval_rate_pct:   approvalRate,
+        submission_rate_pct: submissionRate,
+      },
+    }, 'Org stats fetched');
+  } catch (err) { return sendError(res, err.message, 500); }
+}
+
 module.exports = {
   getCycles, createCycle, updateCycle,
   getThrustAreas, createThrustArea, updateThrustArea,
@@ -468,4 +552,5 @@ module.exports = {
   unlockGoal,
   getCompletionDashboard,
   getAuditLogs,
+  getOrgStats,
 };

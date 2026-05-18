@@ -18,6 +18,6 @@ router.get('/team-scores',       ctrl.teamScores);
 
 // Aliases for analytics page (Session 6)
 router.get('/qoq-trend',              ctrl.goalDistribution);   // returns qoq_trend inside
-router.get('/manager-effectiveness',  ctrl.completionRate);     // returns manager stats
+router.get('/manager-effectiveness',  ctrl.managerEffectiveness); // dedicated effectiveness endpoint
 
 module.exports = router;

@@ -75,11 +75,11 @@ export function GoalDistributionPie({ data = [], height = 280 }) {
     );
   }
 
-  const total = data.reduce((s, d) => s + parseInt(d.goal_count || 0), 0);
+  const total = data.reduce((s, d) => s + parseInt(d.count || 0), 0);
   const chartData = data.map((d) => ({
-    name: d.thrust_area || 'Unassigned',
-    value: parseInt(d.goal_count || 0),
-    pct: total > 0 ? ((parseInt(d.goal_count) / total) * 100).toFixed(1) : '0',
+    name: d.label || 'Unassigned',
+    value: parseInt(d.count || 0),
+    pct: total > 0 ? ((parseInt(d.count) / total) * 100).toFixed(1) : '0',
   }));
 
   return (
@@ -133,9 +133,9 @@ export function UoMDistributionBar({ data = [], height = 200 }) {
   }
 
   const chartData = data.map((d) => ({
-    name: UOM_LABELS[d.uom_type] || d.uom_type,
-    count: parseInt(d.goal_count || 0),
-    uom: d.uom_type,
+    name: UOM_LABELS[d.label] || d.label,
+    count: parseInt(d.count || 0),
+    uom: d.label,
   }));
 
   return (
@@ -188,9 +188,9 @@ export function StatusDistributionBar({ data = [], height = 160 }) {
   };
 
   const chartData = data.map((d) => ({
-    name: d.status?.charAt(0).toUpperCase() + d.status?.slice(1) || d.status,
-    count: parseInt(d.goal_count || 0),
-    status: d.status,
+    name: d.label?.charAt(0).toUpperCase() + d.label?.slice(1) || d.label,
+    count: parseInt(d.count || 0),
+    status: d.label,
   }));
 
   return (

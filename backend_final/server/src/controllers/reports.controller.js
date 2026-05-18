@@ -249,6 +249,62 @@ async function teamScores(req, res) {
 }
 
 // ──────────────────────────────────────────────────────────────
+// GET /api/reports/manager-effectiveness
+// Per-manager approval & check-in effectiveness metrics.
+// ──────────────────────────────────────────────────────────────
+async function managerEffectiveness(req, res) {
+  try {
+    const cycleId = req.query.cycle_id || (await cycleService.getActiveCycle())?.id;
+    if (!cycleId) return sendBadRequest(res, 'No active cycle');
+
+    const { rows } = await query(`
+      SELECT
+        m.id           AS manager_id,
+        m.name         AS manager_name,
+        m.department,
+        COUNT(DISTINCT u.id)                                           AS team_size,
+        COUNT(DISTINCT CASE WHEN g.status IN ('approved','submitted','rework') THEN g.id END) AS total_submitted,
+        COUNT(DISTINCT CASE WHEN g.status = 'approved' THEN g.id END) AS total_approved,
+        ROUND(
+          CASE WHEN COUNT(DISTINCT CASE WHEN g.status IN ('approved','submitted','rework') THEN g.id END) > 0
+            THEN COUNT(DISTINCT CASE WHEN g.status = 'approved' THEN g.id END)::numeric /
+                 NULLIF(COUNT(DISTINCT CASE WHEN g.status IN ('approved','submitted','rework') THEN g.id END), 0) * 100
+            ELSE 0
+          END, 1
+        ) AS approval_rate_pct,
+        ROUND(
+          AVG(
+            CASE WHEN g.status = 'approved'
+              THEN EXTRACT(EPOCH FROM (g.updated_at - g.created_at)) / 86400.0
+              ELSE NULL
+            END
+          ), 1
+        ) AS avg_days_to_approve,
+        COUNT(DISTINCT mc.id)                                          AS total_checkins,
+        COUNT(DISTINCT CASE WHEN g.status = 'approved' THEN g.id END) AS approved_goals_cnt,
+        ROUND(
+          CASE WHEN COUNT(DISTINCT CASE WHEN g.status = 'approved' THEN g.id END) > 0
+            THEN COUNT(DISTINCT mc.id)::numeric /
+                 NULLIF(COUNT(DISTINCT CASE WHEN g.status = 'approved' THEN g.id END) * 4, 0) * 100
+            ELSE 0
+          END, 1
+        ) AS checkin_coverage_pct
+      FROM users m
+      JOIN users u           ON u.manager_id = m.id AND u.is_active = TRUE
+      LEFT JOIN goals g      ON g.employee_id = u.id AND g.cycle_id = $1
+      LEFT JOIN manager_checkins mc ON mc.goal_id = g.id AND mc.manager_id = m.id
+      WHERE m.role IN ('manager','admin') AND m.is_active = TRUE
+      GROUP BY m.id, m.name, m.department
+      ORDER BY approval_rate_pct DESC, m.name
+    `, [cycleId]);
+
+    return sendSuccess(res, rows, 'Manager effectiveness report');
+  } catch (err) {
+    return sendError(res, err.message, 500);
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
 // Private — CSV export
 // ──────────────────────────────────────────────────────────────
 function _sendCsv(res, data, filename) {
@@ -341,4 +397,5 @@ module.exports = {
   completionRate,
   goalDistribution,
   teamScores,
+  managerEffectiveness,
 };

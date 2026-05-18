@@ -41,15 +41,13 @@ export default function Analytics() {
       const params = selectedCycle ? { cycle_id: selectedCycle } : {};
       const [qoqRes, heatmapRes, distRes, effRes] = await Promise.all([
         reportService.getQoQTrend(params),
-        adminService.getCompletionDashboard(selectedCycle).then((r) =>
-          adminService.getOrgStats(selectedCycle).then(() => r)
-        ).catch(() => ({ data: { data: { employees: [] } } })),
+        adminService.getCompletionDashboard(selectedCycle).catch(() => ({ data: { data: { employees: [] } } })),
         reportService.getGoalDistribution(selectedCycle),
         reportService.getManagerEffectiveness(selectedCycle),
       ]);
 
-      // QoQ data
-      setQoqData(qoqRes.data.data || []);
+      // QoQ data lives inside the goalDistribution response as qoq_trend
+      setQoqData(qoqRes.data.data?.qoq_trend || []);
 
       // Heatmap — build from completion dashboard grouped by department
       const employees = heatmapRes.data.data?.employees || [];
@@ -70,12 +68,8 @@ export default function Analytics() {
           };
         }
         byDept[dept].total_employees++;
-        byDept[dept].submitted += parseInt(emp.submitted_goals) > 0 ? 1 : 0;
-        byDept[dept].approved += parseInt(emp.approved_goals) > 0 ? 1 : 0;
-        byDept[dept].q1_actuals += parseInt(emp.q1_checkins) || 0;
-        byDept[dept].q2_actuals += parseInt(emp.q2_checkins) || 0;
-        byDept[dept].q3_actuals += parseInt(emp.q3_checkins) || 0;
-        byDept[dept].q4_actuals += parseInt(emp.q4_checkins) || 0;
+        byDept[dept].submitted += parseInt(emp.submitted) > 0 ? 1 : 0;
+        byDept[dept].approved  += parseInt(emp.approved)  > 0 ? 1 : 0;
         byDept[dept].total_goals_in_cycle += parseInt(emp.total_goals) || 0;
       }
       setHeatmapData(Object.values(byDept));

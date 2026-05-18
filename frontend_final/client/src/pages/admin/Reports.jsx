@@ -233,9 +233,9 @@ export default function Reports() {
           {tab === 'distribution' && data && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
-                { title: 'By Thrust Area', key: 'by_thrust_area', labelKey: 'thrust_area', valueKey: 'goal_count' },
-                { title: 'By UoM Type', key: 'by_uom_type', labelKey: 'uom_type', valueKey: 'goal_count' },
-                { title: 'By Status', key: 'by_status', labelKey: 'status', valueKey: 'goal_count' },
+                { title: 'By Thrust Area', key: 'by_thrust_area', labelKey: 'label', valueKey: 'count' },
+                { title: 'By UoM Type', key: 'by_uom_type', labelKey: 'label', valueKey: 'count' },
+                { title: 'By Status', key: 'by_status', labelKey: 'label', valueKey: 'count' },
               ].map(({ title, key, labelKey, valueKey }) => (
                 <div key={key} className="gs-card p-4">
                   <h3 className="gs-section-title mb-3">{title}</h3>

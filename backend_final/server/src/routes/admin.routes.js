@@ -36,8 +36,8 @@ router.post('/goals/:id/unlock', ctrl.unlockGoal);
 router.get('/completion',       ctrl.getCompletionDashboard);
 router.get('/audit-logs',       ctrl.getAuditLogs);
 
-// Alias for frontend AdminDashboard
-router.get('/stats', ctrl.getCompletionDashboard);
+// Org stats for Admin Overview top stat cards (Issue 4 fix)
+router.get('/stats', ctrl.getOrgStats);
 
 // Cycle activation shortcut
 router.put('/cycles/:id/activate', async (req, res) => {
