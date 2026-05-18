@@ -179,6 +179,53 @@ async function getEmployeeGoals(req, res) {
 }
 
 // ──────────────────────────────────────────────────────────────
+// GET /api/manager/approval-queue
+// Employees with their goals, for approval.
+// ──────────────────────────────────────────────────────────────
+async function getApprovalQueue(req, res) {
+  try {
+    const cycleId = req.query.cycle_id || (await cycleService.getActiveCycle())?.id;
+    if (!cycleId) return sendSuccess(res, [], 'No active cycle');
+
+    const { rows: employees } = await query(`
+      SELECT 
+        u.id AS employee_id, 
+        u.name AS employee_name, 
+        u.email AS employee_email, 
+        u.department
+      FROM users u
+      WHERE u.manager_id = $1 AND u.is_active = TRUE
+    `, [req.user.id]);
+
+    const result = [];
+    
+    for (const emp of employees) {
+      const { rows: goals } = await query(`
+        SELECT g.*, ta.name AS thrust_area
+        FROM goals g
+        LEFT JOIN thrust_areas ta ON ta.id = g.thrust_area_id
+        WHERE g.employee_id = $1 AND g.cycle_id = $2
+        ORDER BY g.created_at
+      `, [emp.employee_id, cycleId]);
+      
+      const submittedGoals = goals.filter(g => g.status === 'submitted');
+      
+      if (submittedGoals.length > 0) {
+        result.push({
+          ...emp,
+          pending_goals: submittedGoals.length,
+          goals: goals
+        });
+      }
+    }
+    
+    return sendSuccess(res, result, 'Approval queue fetched');
+  } catch (err) {
+    return sendError(res, err.message, 500);
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
 // PUT /api/manager/goals/:id/approve
 // Approve a goal → status='approved', is_locked=TRUE
 // ──────────────────────────────────────────────────────────────
@@ -632,4 +679,5 @@ module.exports = {
   getCheckins,
   pushSharedGoal,
   getTeamProgress,
+  getApprovalQueue,
 };

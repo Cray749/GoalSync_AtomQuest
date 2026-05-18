@@ -23,7 +23,7 @@ router.get('/checkin/:employee_id/:quarter',      ctrl.getCheckins);
 router.post('/shared-goals',                      ctrl.pushSharedGoal);
 
 // Aliases needed by frontend
-router.get('/approval-queue',   ctrl.getTeam);          // frontend filters submitted goals
+router.get('/approval-queue',   ctrl.getApprovalQueue); // frontend expects nested goals
 router.get('/team-progress',    ctrl.getTeamProgress);  // returns quarterly scores
 
 module.exports = router;
