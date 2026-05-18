@@ -17,7 +17,7 @@ export default function Reports() {
   const [selectedCycle, setSelectedCycle] = useState('');
 
   useEffect(() => { fetchCycles(); }, []);
-  useEffect(() => { fetchReport(); }, [tab, selectedCycle]);
+  useEffect(() => { setData([]); fetchReport(); }, [tab, selectedCycle]);
 
   async function fetchCycles() {
     try {
@@ -264,7 +264,6 @@ export default function Reports() {
             </div>
           )}
 
-          {/* Manager Effectiveness */}
           {tab === 'effectiveness' && (
             <div className="gs-card overflow-hidden">
               <div className="overflow-x-auto">
@@ -280,7 +279,7 @@ export default function Reports() {
                     </tr>
                   </thead>
                   <tbody>
-                    {data.map((row, i) => (
+                    {Array.isArray(data) && data.map((row, i) => (
                       <tr key={i}>
                         <td>
                           <p className="font-medium text-slate-200">{row.manager_name}</p>
@@ -304,7 +303,7 @@ export default function Reports() {
                         <td className="text-center font-mono text-slate-300">{row.total_checkins}</td>
                       </tr>
                     ))}
-                    {data.length === 0 && (
+                    {(!Array.isArray(data) || data.length === 0) && (
                       <tr>
                         <td colSpan={6} className="text-center py-10 text-slate-500">No data.</td>
                       </tr>
