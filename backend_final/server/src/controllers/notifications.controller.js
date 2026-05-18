@@ -109,16 +109,6 @@ exports.broadcastQuarterOpen = async (req, res) => {
 };
 
 
-// ─── POST /api/admin/escalations/run (admin) ──────────────────────────────────
-exports.runEscalationsManually = async (req, res) => {
-  try {
-    const result = await triggerManualRun();
-    return sendSuccess(res, result, 'Escalation run complete');
-  } catch (err) {
-    return sendError(res, err.message, 500);
-  }
-};
-
 exports.getUnreadCount = async (req, res) => {
   try {
     const { rows } = await query(
@@ -131,4 +121,15 @@ exports.getUnreadCount = async (req, res) => {
     return sendError(res, err);
   }
 };
+
+// ─── POST /api/admin/escalations/run (admin) ──────────────────────────────────
+exports.runEscalationsManually = async (req, res) => {
+  try {
+    const result = await triggerManualRun();
+    return sendSuccess(res, result, 'Escalation run complete');
+  } catch (err) {
+    return sendError(res, err.message, 500);
+  }
+};
+
 
