@@ -30,7 +30,7 @@ services:
       - key: JWT_EXPIRES_IN
         value: 8h
       - key: CLIENT_URL
-        value: https://goalsynce.onrender.com   # ← update if your service name differs
+        value: https://nucleus-6q6e.onrender.com
 
   # ── Frontend Static Site ─────────────────────────────────────
   - type: web
@@ -43,7 +43,7 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        value: https://goalsynce-api.onrender.com/api   # ← update if your service name differs
+        value: https://goalsync-tzsv.onrender.com/api   # ← update if your service name differs
     routes:
       - type: rewrite
         source: /*
