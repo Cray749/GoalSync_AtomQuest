@@ -117,3 +117,17 @@ exports.runEscalationsManually = async (req, res) => {
     return sendError(res, err.message, 500);
   }
 };
+
+exports.getUnreadCount = async (req, res) => {
+  try {
+    const { rows } = await query(
+      `SELECT COUNT(*) AS count FROM notifications
+       WHERE user_id = $1 AND is_read = FALSE`,
+      [req.user.id]
+    );
+    return sendSuccess(res, { count: parseInt(rows[0].count, 10) });
+  } catch (err) {
+    return sendError(res, err);
+  }
+};
+

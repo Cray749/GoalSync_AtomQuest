@@ -14,19 +14,20 @@
 
 'use strict';
 
-const express      = require('express');
-const router       = express.Router();
+const express = require('express');
+const router = express.Router();
 const authenticate = require('../middleware/authenticate');
-const authorize    = require('../middleware/authorize');
-const ctrl         = require('../controllers/notifications.controller');
+const authorize = require('../middleware/authorize');
+const ctrl = require('../controllers/notifications.controller');
 
 // All notification routes require auth
 router.use(authenticate);
 
-router.get('/',                     ctrl.getMyNotifications);
-router.patch('/read-all',           ctrl.markAllRead);          // must be before /:id
-router.patch('/:id/read',           ctrl.markOneRead);
-router.delete('/:id',               ctrl.deleteNotification);
+router.get('/', ctrl.getMyNotifications);
+router.get('/unread-count', ctrl.getUnreadCount);
+router.patch('/read-all', ctrl.markAllRead);          // must be before /:id
+router.patch('/:id/read', ctrl.markOneRead);
+router.delete('/:id', ctrl.deleteNotification);
 
 // Admin-only broadcast
 router.post('/broadcast', authorize('admin'), ctrl.broadcastQuarterOpen);
