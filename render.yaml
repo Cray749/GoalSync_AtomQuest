@@ -10,7 +10,7 @@ databases:
 services:
   # ── Backend Web Service ──────────────────────────────────────
   - type: web
-    name: goalsynce-api
+    name: nucleas-api
     runtime: node
     rootDir: backend_final/server
     plan: free
@@ -34,7 +34,7 @@ services:
 
   # ── Frontend Static Site ─────────────────────────────────────
   - type: web
-    name: goalsynce
+    name: nucleas-web
     runtime: static
     rootDir: frontend_final/client
     plan: free
@@ -43,7 +43,7 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        value: https://goalsync-tzsv.onrender.com/api   # ← update if your service name differs
+        value: https://nucleas-api.onrender.com/api   # ← update if your service name differs
     routes:
       - type: rewrite
         source: /*

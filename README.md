@@ -19,7 +19,7 @@
 ## 🔗 Live Demo Links
 
 *   **Frontend Dashboard:** [https://nucleus-6q6e.onrender.com](https://nucleus-6q6e.onrender.com)
-*   **Backend REST API:** [https://goalsync-tzsv.onrender.com](https://goalsync-tzsv.onrender.com)
+*   **Backend REST API:** [https://nucleas-api.onrender.com](https://nucleas-api.onrender.com)
 
 > [!NOTE]  
 > The backend runs on Render's free tier. If the app takes ~30 seconds to load on your first visit, the server is waking up from an idle state. This is expected behavior on the free tier — navigation will be instant right after waking.
